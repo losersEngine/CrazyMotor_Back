@@ -5,6 +5,7 @@
  */
 package losersengine.back.CrazyMotors_Back;
 
+import java.util.Collection;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -18,6 +19,9 @@ public class Racer {
     private final WebSocketSession session;
     private final String name;
     
+    //Aceleración
+    //Posición en X e Y
+    
     public Racer(int i, WebSocketSession s, String n){
         this.id = i;
         this.session = s;
@@ -28,6 +32,9 @@ public class Racer {
         if(this.session.isOpen())
             this.session.sendMessage(new TextMessage(msg));
     }
+    
+    public void update(Collection<Prop> props){
+    }
 
     public WebSocketSession getSession() {
         return session;
@@ -35,6 +42,10 @@ public class Racer {
 
     public String getName() {
         return name;
+    }
+    
+    public int getId(){
+        return id;
     }
     
 }

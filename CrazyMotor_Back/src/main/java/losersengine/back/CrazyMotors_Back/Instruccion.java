@@ -7,7 +7,7 @@ package losersengine.back.CrazyMotors_Back;
 
 /**
  *
- * @author bris
+ * @author Brisin
  */
 public class Instruccion {
     
