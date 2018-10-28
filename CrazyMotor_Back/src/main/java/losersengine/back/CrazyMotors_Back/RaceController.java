@@ -5,6 +5,7 @@
  */
 package losersengine.back.CrazyMotors_Back;
 
+import losersengine.back.CrazyMotors_Back.Objects.Racer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
@@ -36,7 +37,7 @@ public class RaceController extends TextWebSocketHandler {
     private Gson gson = new Gson();
     
     private ConcurrentHashMap<String, RaceGame> salas;     //idSala y RaceGame
-    private ConcurrentHashMap<String, Racer> sessions;      //idSnake y corredor
+    private ConcurrentHashMap<String, Racer> sessions;      //idRacer y corredor
 
     //Diccionario de funciones
     private ConcurrentHashMap<String, Function> Funciones;

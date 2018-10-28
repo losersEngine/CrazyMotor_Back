@@ -5,6 +5,8 @@
  */
 package losersengine.back.CrazyMotors_Back;
 
+import losersengine.back.CrazyMotors_Back.Objects.Racer;
+import losersengine.back.CrazyMotors_Back.Objects.Prop;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
@@ -24,6 +26,8 @@ import java.util.logging.Logger;
  * @author Brisin
  */
 public class RaceGame {
+    
+    private final static int[] LINE_HEIGHTS = new int[]{50, 200};
     
     public Random rnd = new Random(System.currentTimeMillis());
     private ObjectMapper mapper = new ObjectMapper();
