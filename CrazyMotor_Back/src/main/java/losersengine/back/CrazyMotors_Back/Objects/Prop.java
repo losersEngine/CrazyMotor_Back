@@ -32,15 +32,32 @@ public abstract class Prop {
         int[] posRaz = raz.getPos();
         int[] colRaz = raz.getCollider();
         
-        boolean xCol;
-        xCol = (posRaz[0] + colRaz[0]) > (this.position[0] - this.collider[0]) || (posRaz[0] - colRaz[0]) < (this.position[0] + this.collider[0]);
+        int[] vec = new int[2];
+        vec[0] = (int) (posRaz[0] - this.position[0]);
+        vec[1] = (int) (posRaz[1] - this.position[1]);
         
-        boolean yCol;
-        yCol = (posRaz[1] + colRaz[1]) > (this.position[1] - this.collider[1]) || (posRaz[1] - colRaz[1]) < (this.position[1] + this.collider[1]);
+        int dis = (int) Math.sqrt(Math.exp(vec[0]) + Math.exp(vec[1]));
+        boolean xCol = false;
+        boolean yCol = false;
+        
+        if(dis < 100){
+            
+            yCol = (posRaz[1] > this.position[1]) && (posRaz[1] < (this.position[1] + this.collider[1])) ||
+                    ((posRaz[1] + colRaz[1]) > this.position[1]) && ((posRaz[1] + colRaz[1]) < (this.position[1] + this.collider[1])) ||
+                    (posRaz[1] > this.position[1]) && ((posRaz[1] + colRaz[1]) < (this.position[1] + this.collider[1])) ||
+                    (posRaz[1] < this.position[1]) && ((posRaz[1] + colRaz[1]) > (this.position[1] + this.collider[1]));
+        
+            if(yCol)
+                xCol = ((posRaz[0] + colRaz[0]) > (this.position[0] - this.collider[0]) && (posRaz[0] - colRaz[0]) < (this.position[0] - this.collider[0])) ||
+                        ((posRaz[0] - colRaz[0]) > (this.position[0] - this.collider[0]) && (posRaz[0] - colRaz[0]) < (this.position[0] + this.collider[0])) ||
+                        ((posRaz[0] - colRaz[0]) > (this.position[0] - this.collider[0]) && (posRaz[0] + colRaz[0]) < (this.position[0] + this.collider[0])) ||
+                        ((posRaz[0] - colRaz[0]) < (this.position[0] - this.collider[0]) && (posRaz[0] + colRaz[0]) > (this.position[0] + this.collider[0]));
+
+        }
         
         return (xCol && yCol);
     }
     
-    public abstract void onCollision();
+    public abstract void onCollision(Racer raz);
     
 }

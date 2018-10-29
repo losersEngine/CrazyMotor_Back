@@ -19,7 +19,7 @@ public class Fall extends Prop{
     }
 
     @Override
-    public void onCollision() {
+    public void onCollision(Racer raz) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

@@ -27,7 +27,8 @@ import java.util.logging.Logger;
  */
 public class RaceGame {
     
-    private final static int[] LINE_HEIGHTS = new int[]{50, 200};
+    //1280, 720
+    private final static int[] LINE_HEIGHTS = new int[]{150, 450};
     
     public Random rnd = new Random(System.currentTimeMillis());
     private ObjectMapper mapper = new ObjectMapper();
@@ -53,7 +54,7 @@ public class RaceGame {
 
     }
     
-    public void addSnake(Racer racer) {
+    public void addRacer(Racer racer) {
 
         synchronized(racer){
             racers.put(racer.getId(), racer);
@@ -84,7 +85,7 @@ public class RaceGame {
         
     }
     
-    public synchronized void multimsg(String message) throws Exception {
+    public synchronized void broadcast(String message) throws Exception {
 
         for (Racer rac : getRacers()) {
             try {
@@ -134,7 +135,7 @@ public class RaceGame {
                 //TODO
                 //n.put("ganador", aux[0]);
                 //n.put("puntos", aux[1]);
-                multimsg(n.toString());
+                broadcast(n.toString());
                 
             } catch (Exception ex) {
                 Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
