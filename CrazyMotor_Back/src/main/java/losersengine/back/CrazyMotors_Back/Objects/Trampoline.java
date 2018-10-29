@@ -15,11 +15,17 @@ public class Trampoline extends Prop{
     //Si el jugador colisiona con él, gana velocidad en Y hasta que llegue al piso de arriba
     
     public Trampoline(float[] pos) {
-        super(pos, new int[]{});
+        super(pos, new int[]{20, 50});
     }
 
     @Override
     public void onCollision(Racer raz) {
+        int[] vel = raz.getVel();
+        raz.setStateAct(3);
+        
+        raz.setVel(new int[]{vel[0], 15});
+        //TODO: Parar
+        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

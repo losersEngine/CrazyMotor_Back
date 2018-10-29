@@ -20,7 +20,13 @@ public class Fall extends Prop{
 
     @Override
     public void onCollision(Racer raz) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        int[] vel = raz.getVel();
+        raz.setStateAct(3);
+        
+        raz.setVel(new int[]{vel[0], -15});
+        
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

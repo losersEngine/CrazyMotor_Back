@@ -20,7 +20,10 @@ public class Nitro extends Prop{
 
     @Override
     public void onCollision(Racer raz) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        raz.setNitroLvl(raz.getNitroLvl() + 20);
+        
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
