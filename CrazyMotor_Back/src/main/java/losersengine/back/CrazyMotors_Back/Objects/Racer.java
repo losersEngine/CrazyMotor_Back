@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package losersengine.back.CrazyMotors_Back.Objects;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -18,13 +12,17 @@ import org.springframework.web.socket.WebSocketSession;
 public class Racer {
     
     public static List<String> states = new ArrayList<>();
-    //{"Avanzando", "Golpeado", "Saltando", "CambioLinea"};
+    
+    //1280, 720
+    private final static int[] LINE_HEIGHTS = new int[]{150, 450};
     
     private String stateAct;
     
     private final int id;
     private final WebSocketSession session;
     private final String name;
+    
+    private int lineaActual;
     
     //Aceleración
     //Posición en X e Y
@@ -36,6 +34,9 @@ public class Racer {
     
     private int nitroLvl;
     
+    private boolean isNitroPressed;
+    private boolean isJumpPressed;
+    
     public Racer(int i, WebSocketSession s, String n){
         this.id = i;
         this.session = s;
@@ -45,6 +46,9 @@ public class Racer {
         this.vel = new int[]{0,0};
         
         this.nitroLvl = 0;
+        
+        this.isJumpPressed = false;
+        this.isNitroPressed = false;
         
         states.add("Avanzando");
         states.add("Golpeado");
@@ -59,28 +63,153 @@ public class Racer {
             this.session.sendMessage(new TextMessage(msg));
     }
     
-    public void update(Collection<Prop> props){
+    public void update(List<Prop> props){
         
         int index = states.indexOf(stateAct);
         
         switch(index){
         
-            case 0:
+            case 0: //Avanzando
+                
+                int i = 0;
+                
+                //Colisión
+                
+                while(i < props.size() && states.indexOf(stateAct) == 0){
+                
+                    Prop propAct = props.get(i);
+                    if(propAct.isColliding(this)){
+                        propAct.onCollision(this);
+                    }
+                    
+                    i++;
+                    
+                }
+                
+                //COMPROBAR SI NITRO
+                if(this.isNitroPressed){
+                
+                    this.vel[0] = 4;
+                    
+                }
+                
+                if(states.indexOf(stateAct) == 0){
+                    //Actualizar posición
+                    this.updatePosition();
+                    //VelX-- hasta llegar a 0 (Por si el nitro le ha subido la velocidad)
+                    vel[0]--;
+                    if(vel[0] < 0)
+                        vel[0] = 0;
+                }
+                
+                //COMPROBAR SI SALTA
+                if(this.isJumpPressed){
+                
+                    this.vel[1] = 7;
+                    this.stateAct = states.get(2);
+                    
+                }
+
                 break;
                 
-            case 1:
+            case 1: //Golpeado
+                
+                //No colisión
+                //Actualizar posición
+                this.updatePosition();
+                //VelY-- hasta llegar a la línea actual
+                vel[1]--;
+                if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                    vel[1] = 0;
+                    pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                }
+                        
+                
                 break;
                 
-            case 2:
+            case 2: //Saltando
+                
+                int j = 0;
+                
+                //Colisión
+                
+                while(j < props.size() && states.indexOf(stateAct) == 0){
+                
+                    Prop propAct = props.get(j);
+                    if(propAct.isColliding(this)){
+                        propAct.onCollision(this);
+                    }
+                    
+                    j++;
+                    
+                }
+                
+                if(states.indexOf(stateAct) == 2){
+                    //Actualizar posición
+                    this.updatePosition();
+                    //VelX-- hasta llegar a 0 (Por si el nitro le ha subido la velocidad)
+                    vel[0]--;
+                    if(vel[0] < 0)
+                        vel[0] = 0;
+                    
+                    this.updatePosition();
+                    //VelY-- hasta llegar a la línea actual
+                    vel[1]--;
+                    if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                        vel[1] = 0;
+                        pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                    }
+                }
+                
                 break;
                 
-            case 3:
+            case 3: //CambioLinea
+                
+                //No colisión
+                //Actualizar posición
+                this.updatePosition();
+
+                if(this.vel[1] > 0){
+                
+                    if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
+                        vel[1] = 0;
+                        pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                        this.stateAct = states.get(0);
+                    }
+                    
+                } else {
+                    
+                    if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                        vel[1] = 0;
+                        pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                        this.stateAct = states.get(0);
+                    }
+                
+                }
+                
                 break;
                 
             default:
                 break;
         
         }
+    }
+    
+    public void updatePosition(){
+    
+        this.pos[0] = this.pos[0] + this.vel[0];
+        this.pos[1] = this.pos[1] + this.vel[1];
+        
+        if (pos[0] <= 0){
+        
+            pos[0] = 0;
+            vel[0] = 0;
+            
+            int stateToChange = (this.vel[1] == 0) ? 0 : 2;
+            this.stateAct = states.get(stateToChange);
+            
+        }
+    
     }
 
     public WebSocketSession getSession() {
@@ -136,5 +265,13 @@ public class Racer {
     public void setStateAct(int st) {
         this.stateAct = states.get(st);
     }
-    
+
+    public int getLineaActual() {
+        return lineaActual;
+    }
+
+    public void setLineaActual(int lineaActual) {
+        this.lineaActual = lineaActual;
+    }
+
 }

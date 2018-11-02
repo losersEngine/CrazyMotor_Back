@@ -1,9 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package losersengine.back.CrazyMotors_Back.Objects;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -15,8 +13,20 @@ public class Laser extends Prop{
     //Si el jugador colisiona con él, gana velocidad en X negativa hasta llegar al inicio del mapa
     //Cuando aparece se les da un 5% de nitro a todos los jugadores
     
+    private ScheduledExecutorService scheduler;
+    private int state;
+    
     public Laser(float[] pos) {
         super(pos, new int[]{});
+        
+        state = 0;
+        
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                state = (state + 1) % 3;
+            }
+        }, 0, 2, TimeUnit.SECONDS);
     }
 
     @Override

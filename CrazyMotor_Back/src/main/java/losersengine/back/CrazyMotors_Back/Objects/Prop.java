@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package losersengine.back.CrazyMotors_Back.Objects;
 
 /**
@@ -24,6 +19,12 @@ public abstract class Prop {
         
         collider[0] = col[0];
         collider[1] = col[1];
+        
+    }
+    
+    public void update(int vel){
+    
+        this.position[0] = this.position[0] + vel;
         
     }
     

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package losersengine.back.CrazyMotors_Back;
 
 import losersengine.back.CrazyMotors_Back.Objects.Racer;
@@ -27,9 +22,6 @@ import java.util.logging.Logger;
  */
 public class RaceGame {
     
-    //1280, 720
-    private final static int[] LINE_HEIGHTS = new int[]{150, 450};
-    
     public Random rnd = new Random(System.currentTimeMillis());
     private ObjectMapper mapper = new ObjectMapper();
     
@@ -40,6 +32,7 @@ public class RaceGame {
     private List<Prop> props;
 
     private long difficulty = 1;
+    private int velGame;
     private boolean inGame;
 
     private ScheduledExecutorService scheduler;
@@ -51,6 +44,7 @@ public class RaceGame {
         inGame = false;
         difficulty = dif;
         props = new CopyOnWriteArrayList<>();
+        velGame = -5;
 
     }
     
@@ -164,7 +158,5 @@ public class RaceGame {
     public void setInGame(boolean inGame) {
         this.inGame = inGame;
     }
-    
-    
     
 }

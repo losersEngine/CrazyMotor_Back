@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package losersengine.back.CrazyMotors_Back.Objects;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,7 +35,9 @@ public class Box extends Prop{
         int vel[] = raz.getVel();
         
         raz.setVel(new int[]{0, vel[1]});
-        raz.setStateAct(0);
+        int state = (vel[1]==0) ? 0 : 2; //Si está cayendo o subiendo, se mantiene el state en saltando, si no, en avanzando
+        
+        raz.setStateAct(state);
     }
     
 }
