@@ -125,6 +125,10 @@ public class RaceGame {
             
     }
     
+    public synchronized void addProp(Prop p){
+        props.add(p);
+    }
+    
     public void startTimer() {
         
         RaceGame that = this;
