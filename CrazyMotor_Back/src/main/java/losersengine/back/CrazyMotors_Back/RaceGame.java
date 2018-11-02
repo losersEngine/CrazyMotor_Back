@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import losersengine.back.CrazyMotors_Back.Objects.FinishLine;
 
 /**
  *
@@ -36,6 +37,7 @@ public class RaceGame {
     private boolean inGame;
 
     private ScheduledExecutorService scheduler;
+    private FinishLine finish;
     
     public RaceGame(long dif, String c){
 
@@ -45,6 +47,8 @@ public class RaceGame {
         difficulty = dif;
         props = new CopyOnWriteArrayList<>();
         velGame = -5;
+        
+        finish = null;
 
     }
     
@@ -103,16 +107,40 @@ public class RaceGame {
             //Victoria
             //Colisiones
             //Avance
+            
+        //Update props
+        //Update racers
+        
+        for(Prop p : props){
+            p.update(velGame);
+        }
+        
+        for(Racer r : this.getRacers()){
+            r.update(props);
+            
+            if(finish != null){
+                finish.isColliding(r);
+            }
+        }
+            
     }
     
     public void startTimer() {
         
+        RaceGame that = this;
+        
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> step(), TIME_BETWEEN/difficulty, TIME_BETWEEN/difficulty, TimeUnit.MILLISECONDS);
+        scheduler.schedule(new Runnable() {
+            @Override
+            public void run() {
+                finish = new FinishLine(new float[]{1080, 720}, new int[]{10, 720}, that);
+            }
+        }, 120, TimeUnit.SECONDS);
         
     }
     
-    public void stopTimer() {
+    public void stopTimer(Racer raz) {
             
             try {
                 if (scheduler != null) {
