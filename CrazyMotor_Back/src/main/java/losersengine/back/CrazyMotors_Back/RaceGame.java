@@ -4,6 +4,7 @@ import losersengine.back.CrazyMotors_Back.Objects.Racer;
 import losersengine.back.CrazyMotors_Back.Objects.Prop;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -15,7 +16,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import losersengine.back.CrazyMotors_Back.Objects.Box;
+import losersengine.back.CrazyMotors_Back.Objects.Fall;
 import losersengine.back.CrazyMotors_Back.Objects.FinishLine;
+import losersengine.back.CrazyMotors_Back.Objects.Laser;
+import losersengine.back.CrazyMotors_Back.Objects.Nitro;
+import losersengine.back.CrazyMotors_Back.Objects.Trampoline;
 
 /**
  *
@@ -26,11 +32,18 @@ public class RaceGame {
     public Random rnd = new Random(System.currentTimeMillis());
     private ObjectMapper mapper = new ObjectMapper();
     
+    //1280, 720
+    private final static int[] LINE_HEIGHTS = new int[]{150, 450};
     private final static long TIME_BETWEEN = 100;
+    private int frame;
     
     private ConcurrentHashMap<Integer, Racer> racers; 
     private AtomicInteger numRacers; //Hacer que sólo se juegue cuando hayan 2 jugadores
     private List<Prop> props;
+    
+    //Línea abajo / línea arriba
+    private List<PerlinNoise> noiseLines;
+    private float[] noiseValues;
 
     private long difficulty = 1;
     private int velGame;
@@ -46,7 +59,15 @@ public class RaceGame {
         inGame = false;
         difficulty = dif;
         props = new CopyOnWriteArrayList<>();
+        
+        noiseLines = new ArrayList<>();
+        noiseLines.add(new PerlinNoise());
+        noiseLines.add(new PerlinNoise());
+        
+        noiseValues = new float[]{0.5f, 0.5f};
+        
         velGame = -5;
+        frame = 1;
         
         finish = null;
 
@@ -122,11 +143,58 @@ public class RaceGame {
                 finish.isColliding(r);
             }
         }
+        
+        this.addProp();
             
     }
     
-    public synchronized void addProp(Prop p){
-        props.add(p);
+    public void addProp(){
+        
+        //Comparamos con los valores anteriores
+        float cambioAbajo = noiseLines.get(0).getValue(frame * (TIME_BETWEEN / 1000));
+        float cambioArriba = noiseLines.get(1).getValue(frame * (TIME_BETWEEN / 1000));
+        
+        ///////////////////////////////////////////7
+        if(cambioAbajo > 25 && cambioAbajo < 60){
+            //Spawn Caja o láser, hacer un rnd
+            int prob = rnd.nextInt(10);
+            
+            if (prob < 2){
+                //Láser
+                props.add(new Laser(new float[]{1080 , 0}));
+            } else{
+                //Caja
+                props.add(new Box(new float[]{1080 ,LINE_HEIGHTS[0]}));
+            }
+            
+        } else if(cambioAbajo > 60){
+            //Spawn Trampolín
+            props.add(new Trampoline(new float[]{1080 ,LINE_HEIGHTS[0]}));
+        } else if(cambioAbajo < -35){
+            //Spawn nitro
+            props.add(new Nitro(new float[]{1080 ,LINE_HEIGHTS[0] + 30}));
+        }
+        
+        ///////////////////////////////////////////7
+        if(cambioArriba > 25 && cambioArriba < 60){
+            //Spawn Caja o láser, hacer un rnd
+            int prob = rnd.nextInt(10);
+            
+            if (prob < 2){
+                //Láser
+                props.add(new Laser(new float[]{1080 , 0}));
+            } else{
+                //Caja
+                props.add(new Box(new float[]{1080 ,LINE_HEIGHTS[1]}));
+            }
+        } else if(cambioArriba > 60){
+            //Spawn Fall
+            props.add(new Fall(new float[]{1080 ,LINE_HEIGHTS[1]}));
+        } else if(cambioArriba < -35){
+            //Spawn nitro
+            props.add(new Nitro(new float[]{1080 ,LINE_HEIGHTS[1] + 30}));
+        }
+        
     }
     
     public void startTimer() {
