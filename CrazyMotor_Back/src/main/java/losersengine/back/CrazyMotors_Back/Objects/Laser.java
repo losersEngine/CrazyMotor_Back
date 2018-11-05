@@ -14,12 +14,9 @@ public class Laser extends Prop{
     //Cuando aparece se les da un 5% de nitro a todos los jugadores
     
     private ScheduledExecutorService scheduler;
-    private int state;
     
     public Laser(float[] pos) {
         super(pos, new int[]{});
-        
-        state = 0;
         
         scheduler.scheduleAtFixedRate(new Runnable() {
             @Override

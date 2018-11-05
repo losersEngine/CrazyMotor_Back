@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,6 +132,7 @@ public class RaceGame {
             
         //Update props
         //Update racers
+        //Destroy props
         
         for(Prop p : props){
             p.update(velGame);
@@ -144,6 +146,14 @@ public class RaceGame {
             }
         }
         
+        Iterator<Prop> toRemove = props.iterator();
+        while(toRemove.hasNext()){
+            Prop act = toRemove.next();
+            
+            if(act.isToBreak())
+                toRemove.remove();;
+        }
+        
         this.addProp();
             
     }
@@ -151,8 +161,13 @@ public class RaceGame {
     public void addProp(){
         
         //Comparamos con los valores anteriores
-        float cambioAbajo = noiseLines.get(0).getValue(frame * (TIME_BETWEEN / 1000));
-        float cambioArriba = noiseLines.get(1).getValue(frame * (TIME_BETWEEN / 1000));
+        float aux = noiseLines.get(0).getValue(frame * (TIME_BETWEEN / 1000));
+        float cambioAbajo = aux - noiseValues[0];
+        noiseValues[0] = aux;
+        
+        aux = noiseLines.get(1).getValue(frame * (TIME_BETWEEN / 1000));
+        float cambioArriba = aux - noiseValues[1];
+        noiseValues[1] = aux;
         
         ///////////////////////////////////////////7
         if(cambioAbajo > 25 && cambioAbajo < 60){

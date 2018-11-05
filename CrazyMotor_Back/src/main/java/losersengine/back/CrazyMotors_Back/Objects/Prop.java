@@ -12,7 +12,15 @@ public abstract class Prop {
     protected float[] position = new float[2];
     protected int[] collider = new int[2];
     
+    protected int state;
+    
+    protected boolean toBreak;
+    
     public Prop(float[] pos, int[] col){
+        
+        state = 0;
+        
+        toBreak = false;
         
         position[0] = pos[0];
         position[1] = pos[1];
@@ -26,9 +34,14 @@ public abstract class Prop {
     
         this.position[0] = this.position[0] + vel;
         
+        if(this.position[0] < -10)
+            this.toBreak = true;
+        
     }
     
     public boolean isColliding(Racer raz){
+        
+        boolean coll = this.state == 0; //Sólo se puede colisionar con objetos que estén en state 1 (Caja sin romper, láser activo...)
         
         int[] posRaz = raz.getPos();
         int[] colRaz = raz.getCollider();
@@ -41,7 +54,7 @@ public abstract class Prop {
         boolean xCol = false;
         boolean yCol = false;
         
-        if(dis < 100){
+        if(dis < 100 && coll){
             
             yCol = (posRaz[1] > this.position[1]) && (posRaz[1] < (this.position[1] + this.collider[1])) ||
                     ((posRaz[1] + colRaz[1]) > this.position[1]) && ((posRaz[1] + colRaz[1]) < (this.position[1] + this.collider[1])) ||
@@ -60,5 +73,9 @@ public abstract class Prop {
     }
     
     public abstract void onCollision(Racer raz);
+
+    public boolean isToBreak() {
+        return toBreak;
+    }
     
 }

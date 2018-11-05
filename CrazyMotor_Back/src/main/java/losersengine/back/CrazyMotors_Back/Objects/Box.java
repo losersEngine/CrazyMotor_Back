@@ -26,18 +26,12 @@ public class Box extends Prop{
         raz.setNitroLvl(0);
         raz.setVel(new int[]{-2, 0});
         
-        scheduler.schedule(() -> stopGolpe(raz), 2, TimeUnit.SECONDS);
+        this.state = 1;
+        scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);
+        
+        raz.stopGolpe();
         
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    public void stopGolpe(Racer raz){
-        int vel[] = raz.getVel();
-        
-        raz.setVel(new int[]{0, vel[1]});
-        int state = (vel[1]==0) ? 0 : 2; //Si está cayendo o subiendo, se mantiene el state en saltando, si no, en avanzando
-        
-        raz.setStateAct(state);
     }
     
 }

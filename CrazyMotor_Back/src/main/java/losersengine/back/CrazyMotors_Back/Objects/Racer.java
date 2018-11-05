@@ -2,6 +2,8 @@ package losersengine.back.CrazyMotors_Back.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -10,6 +12,8 @@ import org.springframework.web.socket.WebSocketSession;
  * @author Brisin
  */
 public class Racer {
+    
+    private ScheduledExecutorService scheduler;
     
     public static List<String> states = new ArrayList<>();
     
@@ -210,6 +214,17 @@ public class Racer {
             
         }
     
+    }
+    
+    public void stopGolpe(){
+        scheduler.schedule(() -> {
+            int vel[] = this.getVel();
+        
+            this.setVel(new int[]{0, vel[1]});
+            int state = (vel[1]==0) ? 0 : 2; //Si está cayendo o subiendo, se mantiene el state en saltando, si no, en avanzando
+
+            this.setStateAct(state);
+        }, 2, TimeUnit.SECONDS);
     }
 
     public WebSocketSession getSession() {
