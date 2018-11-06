@@ -204,13 +204,20 @@ public class Racer {
         this.pos[0] = this.pos[0] + this.vel[0];
         this.pos[1] = this.pos[1] + this.vel[1];
         
-        if (pos[0] <= 0){
+        if (pos[0] <= 15){
         
-            pos[0] = 0;
+            pos[0] = 15;
             vel[0] = 0;
             
             int stateToChange = (this.vel[1] == 0) ? 0 : 2;
             this.stateAct = states.get(stateToChange);
+            
+        }
+        
+        if (pos[0] >= 720){
+        
+            pos[0] = 720;
+            vel[0] = 0;
             
         }
     

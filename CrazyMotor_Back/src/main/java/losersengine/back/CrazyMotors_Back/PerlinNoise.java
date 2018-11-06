@@ -47,6 +47,8 @@ public class PerlinNoise {
         //y = h/2 + interpolate(a,b, (x % wl) / wl) * amp;
         //h=100, amplitud = 50;
         return 50 + interpolate(a, b, x) * Amplitude;
+        
+        //Es posible que tenga que llamar a rand dos veces aquí para actualizar a y b esto
     }
     
 }

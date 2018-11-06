@@ -60,7 +60,10 @@ public class RaceController extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        
+        System.out.println(message.getPayload());
 
+        /*
         try{
 
             String msg = message.getPayload();
@@ -76,7 +79,7 @@ public class RaceController extends TextWebSocketHandler {
             System.err.println("Exception processing message " + message.getPayload());
             e.printStackTrace(System.err);
         }
-
+        */
 
     }
 
