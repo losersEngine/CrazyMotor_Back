@@ -16,6 +16,8 @@ public class Fall extends Prop{
     
     public Fall(float[] pos) {
         super(pos, new int[]{});
+        
+        this.type = "fall";
     }
 
     @Override

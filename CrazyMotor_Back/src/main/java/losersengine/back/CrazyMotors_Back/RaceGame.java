@@ -151,11 +151,49 @@ public class RaceGame {
             Prop act = toRemove.next();
             
             if(act.isToBreak())
-                toRemove.remove();;
+                toRemove.remove();
         }
         
         this.addProp();
+        
+        //////////////////////////////////////////////////////////////////////////
+        StringBuilder playersInfo = new StringBuilder();
+        
+        List<Racer> racers = (List<Racer>) this.getRacers();
+        Racer racerAct = racers.get(0);
+        playersInfo.append(String.format("\"pj\": [ { \"id\": %d, \"state\": %d, \"pos\": %d },", racerAct.getId(), racerAct.getStateAct(), racerAct.getPos()));
+        racerAct = racers.get(1);
+        playersInfo.append(String.format(" { \"id\": %d, \"state\": %d, \"pos\": %d } ]", racerAct.getId(), racerAct.getStateAct(), racerAct.getPos()));
+        
+        //////////////////////////////////////////////////////////////////////////
+        StringBuilder propsInfo = new StringBuilder();
+        
+        propsInfo.append("\"items\": [ ");
+        
+        Iterator<Prop> toSend = props.iterator();
+        while(toSend.hasNext()){
+            Prop act = toSend.next();
             
+            propsInfo.append(String.format("{ \"type\": %d, \"pos\": %d, \"state\": %d }", act.getType(), act.getPosition(), act.getType()));
+            
+            if(toSend.hasNext())
+                propsInfo.append(", ");
+        }
+        
+        propsInfo.append(" ]");
+        
+        //////////////////////////////////////////////////////////////////////////
+        StringBuilder msg = new StringBuilder();
+        
+        msg.append("{ " + playersInfo.toString() + ", " + propsInfo.toString() + " }");
+        
+        //////////////////////////////////////////////////////////////////////////
+        try {
+            this.broadcast(msg.toString());
+        } catch (Exception ex) {
+            Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
     
     public void addProp(){

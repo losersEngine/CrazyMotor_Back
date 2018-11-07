@@ -13,6 +13,7 @@ public abstract class Prop {
     protected int[] collider = new int[2];
     
     protected int state;
+    protected String type;
     
     protected boolean toBreak;
     
@@ -76,6 +77,18 @@ public abstract class Prop {
 
     public boolean isToBreak() {
         return toBreak;
+    }
+
+    public float[] getPosition() {
+        return position;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public String getType() {
+        return type;
     }
     
 }

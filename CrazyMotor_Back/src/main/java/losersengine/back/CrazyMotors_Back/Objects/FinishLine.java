@@ -19,6 +19,7 @@ public class FinishLine extends Prop{
         super(pos, col);
         
         Game = game;
+        this.type = "finishLine";
     }
 
     @Override

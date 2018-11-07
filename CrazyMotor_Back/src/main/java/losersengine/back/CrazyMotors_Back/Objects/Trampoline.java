@@ -16,6 +16,8 @@ public class Trampoline extends Prop{
     
     public Trampoline(float[] pos) {
         super(pos, new int[]{20, 50});
+        
+        this.type = "trampoline";
     }
 
     @Override

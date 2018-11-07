@@ -18,6 +18,8 @@ public class Laser extends Prop{
     public Laser(float[] pos) {
         super(pos, new int[]{});
         
+        this.type = "laser";
+        
         scheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {

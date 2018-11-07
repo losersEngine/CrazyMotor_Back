@@ -11,6 +11,8 @@ public class Nitro extends Prop{
     
     public Nitro(float[] pos) {
         super(pos, new int[]{});
+        
+        this.type = "nitro";
     }
 
     @Override

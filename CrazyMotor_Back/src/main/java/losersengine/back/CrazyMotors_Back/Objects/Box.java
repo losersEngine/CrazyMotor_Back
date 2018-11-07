@@ -16,6 +16,8 @@ public class Box extends Prop{
     
     public Box(float[] pos) {
         super(pos, new int[]{});
+        
+        this.type = "box";
     }
 
     @Override
