@@ -30,7 +30,6 @@ public class RestPruebaIniApplication implements WebSocketConfigurer {
 	@Bean
 	public WebSocketHandler raceHandler() {
             RaceController race = new RaceController();
-            RestAPI.setRaceController(race);
             
             return race;
 	}

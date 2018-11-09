@@ -24,7 +24,6 @@ public class Racer {
     
     private final int id;
     private final WebSocketSession session;
-    private final String name;
     
     private int lineaActual;
     
@@ -41,12 +40,11 @@ public class Racer {
     private boolean isNitroPressed;
     private boolean isJumpPressed;
     
-    public Racer(int i, WebSocketSession s, String n){
+    public Racer(int i, int[] p, WebSocketSession s){
         this.id = i;
         this.session = s;
-        this.name = n;
         
-        this.pos = new int[]{0,0};
+        this.pos = p;
         this.vel = new int[]{0,0};
         
         this.nitroLvl = 0;
@@ -237,10 +235,6 @@ public class Racer {
     public WebSocketSession getSession() {
         return session;
     }
-
-    public String getName() {
-        return name;
-    }
     
     public int getId(){
         return id;
@@ -294,6 +288,22 @@ public class Racer {
 
     public void setLineaActual(int lineaActual) {
         this.lineaActual = lineaActual;
+    }
+
+    public synchronized boolean isIsNitroPressed() {
+        return isNitroPressed;
+    }
+
+    public synchronized void setIsNitroPressed(boolean isNitroPressed) {
+        this.isNitroPressed = isNitroPressed;
+    }
+
+    public synchronized boolean isIsJumpPressed() {
+        return isJumpPressed;
+    }
+
+    public synchronized void setIsJumpPressed(boolean isJumpPressed) {
+        this.isJumpPressed = isJumpPressed;
     }
 
 }

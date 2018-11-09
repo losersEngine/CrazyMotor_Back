@@ -2,8 +2,6 @@ package losersengine.back.CrazyMotors_Back;
 
 import losersengine.back.CrazyMotors_Back.Objects.Racer;
 import losersengine.back.CrazyMotors_Back.Objects.Prop;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -31,10 +29,9 @@ import losersengine.back.CrazyMotors_Back.Objects.Trampoline;
 public class RaceGame {
     
     public Random rnd = new Random(System.currentTimeMillis());
-    private ObjectMapper mapper = new ObjectMapper();
     
     //1280, 720
-    private final static int[] LINE_HEIGHTS = new int[]{150, 450};
+    public final static int[] LINE_HEIGHTS = new int[]{150, 450};
     private final static long TIME_BETWEEN = 100;
     private int frame;
     
@@ -47,18 +44,21 @@ public class RaceGame {
     private float[] noiseValues;
 
     private long difficulty = 1;
+    private int id;
+    
     private int velGame;
     private boolean inGame;
 
     private ScheduledExecutorService scheduler;
     private FinishLine finish;
     
-    public RaceGame(long dif, String c){
+    public RaceGame(int i, long dif){
 
         racers = new ConcurrentHashMap<>();
         numRacers = new AtomicInteger();
         inGame = false;
         difficulty = dif;
+        id = i;
         props = new CopyOnWriteArrayList<>();
         
         noiseLines = new ArrayList<>();
@@ -79,9 +79,60 @@ public class RaceGame {
         synchronized(racer){
             racers.put(racer.getId(), racer);
         }
+        
+        //////////////////////////////////////////////////////////////////////
+        List<Racer> players = (List<Racer>) this.getRacers();
+        StringBuilder playersInfo = new StringBuilder();
+        playersInfo.append("{ \"function\": \"join\", \"params\": { \"pj\": [ ");
 
-        numRacers.getAndIncrement();
+        Iterator<Racer> toSend = players.iterator();
+        while(toSend.hasNext()){
+            Racer act = toSend.next();
 
+            playersInfo.append(String.format("{ \"id\": %d, \"pos\": %d }", act.getId(), act.getPos()));
+
+            if(toSend.hasNext())
+                playersInfo.append(", ");
+        }
+
+        playersInfo.append(" ] } }");
+
+        try {
+            this.broadcast(playersInfo.toString());
+        } catch (Exception ex) {
+            Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        int numberPlayers = numRacers.incrementAndGet();
+        
+        if (numberPlayers == 2){
+            for (int i = 1; i < 4; i++){
+                int toNumber = 4-i;
+                scheduler.schedule(() -> countdown(toNumber), i, TimeUnit.SECONDS);
+            }
+            
+            scheduler.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String msg = "{ \"function\": \"start\", \"params\": {} }";
+                        broadcast(msg);
+                    } catch (Exception ex) {
+                        Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }, 4, TimeUnit.SECONDS);
+        }
+
+    }
+    
+    public void countdown(int i){
+        try {
+            String msg = "{ \"function\": \"countdown\", \"params\": { \"count\": " + i + "} }";
+            this.broadcast(msg);
+        } catch (Exception ex) {
+            Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public Collection<Racer> getRacers() {
@@ -96,11 +147,13 @@ public class RaceGame {
 
         int count = numRacers.decrementAndGet();
 
-
-        if (count == 0) {
-            if (scheduler != null) {
+        if (count == 1) {
+            /*if (scheduler != null) {
                 scheduler.shutdown();
-            }
+            }*/
+            
+            List<Racer> players = (List<Racer>) this.getRacers();
+            this.stopTimer(players.get(0));
         }
         
     }
@@ -159,10 +212,10 @@ public class RaceGame {
         //////////////////////////////////////////////////////////////////////////
         StringBuilder playersInfo = new StringBuilder();
         
-        List<Racer> racers = (List<Racer>) this.getRacers();
-        Racer racerAct = racers.get(0);
+        List<Racer> players = (List<Racer>) this.getRacers();
+        Racer racerAct = players.get(0);
         playersInfo.append(String.format("\"pj\": [ { \"id\": %d, \"state\": %d, \"pos\": %d },", racerAct.getId(), racerAct.getStateAct(), racerAct.getPos()));
-        racerAct = racers.get(1);
+        racerAct = players.get(1);
         playersInfo.append(String.format(" { \"id\": %d, \"state\": %d, \"pos\": %d } ]", racerAct.getId(), racerAct.getStateAct(), racerAct.getPos()));
         
         //////////////////////////////////////////////////////////////////////////
@@ -185,7 +238,7 @@ public class RaceGame {
         //////////////////////////////////////////////////////////////////////////
         StringBuilder msg = new StringBuilder();
         
-        msg.append("{ " + playersInfo.toString() + ", " + propsInfo.toString() + " }");
+        msg.append("{ \"function\": \"update\", \"params\": { " + playersInfo.toString() + ", " + propsInfo.toString() + " } }");
         
         //////////////////////////////////////////////////////////////////////////
         try {
@@ -267,28 +320,24 @@ public class RaceGame {
     
     public void stopTimer(Racer raz) {
             
-            try {
-                if (scheduler != null) {
-                    scheduler.shutdown();
-                }
-                
-                //Avisa a los js que ha acabado la partida
-                //TODO
-                
-                this.setInGame(false);
-                
-                ObjectNode n = mapper.createObjectNode();
-                n.put("type","finPartida");
-                //TODO
-                //n.put("ganador", aux[0]);
-                //n.put("puntos", aux[1]);
-                broadcast(n.toString());
-                
-            } catch (Exception ex) {
-                Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            if (scheduler != null) {
+                scheduler.shutdown();
             }
+
+            //Avisa a los js que ha acabado la partida
+            //TODO
+
+            this.setInGame(false);
             
-	}
+            String msg = "{ \"function\": \"finPartida\", \"params\": { \"winner\": " + raz.getId() + "} }";
+            broadcast(msg);
+
+        } catch (Exception ex) {
+            Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -310,6 +359,10 @@ public class RaceGame {
 
     public void setInGame(boolean inGame) {
         this.inGame = inGame;
+    }
+
+    public int getId() {
+        return id;
     }
     
 }
