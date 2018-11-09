@@ -40,10 +40,17 @@ public class RaceController extends TextWebSocketHandler {
         this.sessions = new ConcurrentHashMap<>();
         this.salas = new ConcurrentHashMap<>();
         
+        this.Funciones.put("ping", new Function(){                      //Funcion de ping comprobando que sigue habiendo conexión
+            @Override
+            public void ExecuteAction(String[] params, WebSocketSession session) {
+                return;
+            }
+        });
+        
         this.Funciones.put("unirSala", new Function(){
             @Override
             public void ExecuteAction(String[] params, WebSocketSession session) {      //Params: diff
-                enterGame(Long.parseLong(params[0]), session);
+                enterGame(Float.parseFloat(params[0]), session);
             }
         });
         
@@ -58,6 +65,10 @@ public class RaceController extends TextWebSocketHandler {
                 
                 synchronized(sala){
                     sala.removePlayer(raz);
+                    
+                    if(sala.getNum() == 0){
+                        salas.remove(idSala);
+                    }
                 }
             }
         });
@@ -84,8 +95,8 @@ public class RaceController extends TextWebSocketHandler {
     
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
             
-        session.getAttributes().putIfAbsent(SALA_ATT, "none");
-        session.getAttributes().putIfAbsent(RACER_ATT, "none");
+        session.getAttributes().putIfAbsent(SALA_ATT, -1);
+        session.getAttributes().putIfAbsent(RACER_ATT, -1);
 
     }
 
@@ -101,7 +112,8 @@ public class RaceController extends TextWebSocketHandler {
 
             Instruccion i = gson.fromJson(msg, Instruccion.class);
             Function f = Funciones.get(i.getFuncion());
-            System.out.println(i.getFuncion() + " " + i.getParams());
+            System.out.println(i.getFuncion());
+            System.out.println(i.getParams().toString());
 
             Runnable tarea = () -> f.ExecuteAction(i.getParams(), session);                         //Cada tarea se ejecuta en un hilo
             executor.execute(tarea);
@@ -120,13 +132,18 @@ public class RaceController extends TextWebSocketHandler {
 
             System.out.println("Connection closed. Session " + session.getId());
 
-            String s;
-            Racer razer;
-            String name;
+            RaceGame sala = null;
+            int salaId;
+            Racer razer = null;
+            int racerId;
 
             //Cogemos ambos attribs
-            s = (String) session.getAttributes().get(SALA_ATT);
-            razer = (Racer) session.getAttributes().get(RACER_ATT);
+            salaId = (Integer) session.getAttributes().get(SALA_ATT);
+            if (salaId != -1)
+                sala = salas.get(salaId);
+            racerId = (Integer) session.getAttributes().get(RACER_ATT);
+            if (racerId != -1)
+                razer = sessions.get(racerId);
 
 
             synchronized(sessions.values()){
@@ -135,7 +152,7 @@ public class RaceController extends TextWebSocketHandler {
 
                 //Quitamos el corredor de la sala y mandamos mensaje
 
-                if(!s.equals("none")){
+                if(sala != null){
 
                     String[] vac = null;
                     this.Funciones.get("salirSala").ExecuteAction(vac, session);
@@ -167,7 +184,7 @@ public class RaceController extends TextWebSocketHandler {
 
     }
     
-    public void enterGame(long dif, WebSocketSession session){
+    public void enterGame(float dif, WebSocketSession session){
 
         //TODO
         //Encontrar sala con esa diff ya creada y sólo un jugador
@@ -187,7 +204,7 @@ public class RaceController extends TextWebSocketHandler {
 
                 if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif){
                     
-                    Racer raz = new Racer(racerIds.getAndIncrement(), new int[]{0,RaceGame.LINE_HEIGHTS[1] }, session);
+                    Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{100,RaceGame.LINE_HEIGHTS[1] }, session);
                     session.getAttributes().put(RACER_ATT, raz.getId());
                     sessions.put(raz.getId(), raz);
                     
@@ -204,12 +221,14 @@ public class RaceController extends TextWebSocketHandler {
         RaceGame gam = new RaceGame(gameIds.getAndIncrement(), dif);
         
         synchronized(gam){
-            Racer raz = new Racer(racerIds.getAndIncrement(), new int[]{0,RaceGame.LINE_HEIGHTS[0] }, session);
+            Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{100,RaceGame.LINE_HEIGHTS[0] }, session);
             session.getAttributes().put(RACER_ATT, raz.getId());
             sessions.put(raz.getId(), raz);
 
             gam.addRacer(raz);
             session.getAttributes().put(SALA_ATT, gam.getId());
+            
+            salas.put(gam.getId(), gam);
         }
 
     }

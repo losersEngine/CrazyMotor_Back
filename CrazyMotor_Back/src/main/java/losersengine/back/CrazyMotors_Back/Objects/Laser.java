@@ -1,5 +1,6 @@
 package losersengine.back.CrazyMotors_Back.Objects;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -16,7 +17,9 @@ public class Laser extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Laser(float[] pos) {
-        super(pos, new int[]{});
+        super(pos, new int[]{200, 2000});
+        
+        scheduler = Executors.newScheduledThreadPool(1);
         
         this.type = "laser";
         

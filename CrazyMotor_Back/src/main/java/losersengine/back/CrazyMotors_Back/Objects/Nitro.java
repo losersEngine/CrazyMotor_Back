@@ -10,7 +10,7 @@ public class Nitro extends Prop{
     //Si el jugador colisiona con él, gana carga de nitro que puede usar para ganar velocidad en X
     
     public Nitro(float[] pos) {
-        super(pos, new int[]{});
+        super(pos, new int[]{80,100});
         
         this.type = "nitro";
     }

@@ -1,5 +1,6 @@
 package losersengine.back.CrazyMotors_Back.Objects;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +16,9 @@ public class Fall extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Fall(float[] pos) {
-        super(pos, new int[]{});
+        super(pos, new int[]{200,270});
+        
+        scheduler = Executors.newScheduledThreadPool(1);
         
         this.type = "fall";
     }
@@ -26,7 +29,7 @@ public class Fall extends Prop{
         int[] vel = raz.getVel();
         raz.setStateAct(3);
         
-        raz.setVel(new int[]{vel[0], -15});
+        raz.setVel(new int[]{vel[0], 15});
         raz.setLineaActual(0);
         
         this.state = 1;

@@ -1,5 +1,6 @@
 package losersengine.back.CrazyMotors_Back.Objects;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +16,9 @@ public class Box extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Box(float[] pos) {
-        super(pos, new int[]{});
+        super(pos, new int[]{200,160});
+        
+        scheduler = Executors.newScheduledThreadPool(1);
         
         this.type = "box";
     }

@@ -18,7 +18,8 @@ public class Racer {
     public static List<String> states = new ArrayList<>();
     
     //1280, 720
-    private final static int[] LINE_HEIGHTS = new int[]{150, 450};
+    public final static int[] DIMENSIONS = losersengine.back.CrazyMotors_Back.RaceGame.DIMENSIONS;
+    public final static int[] LINE_HEIGHTS = losersengine.back.CrazyMotors_Back.RaceGame.LINE_HEIGHTS;
     
     private String stateAct;
     
@@ -29,18 +30,18 @@ public class Racer {
     
     //Aceleración
     //Posición en X e Y
-    private int pos[];
+    private float pos[];
     private int vel[];
     
     //Collider (Ancho y alto en "radio")
-    private final static int[] collider = new int[]{10, 80};
+    private final static int[] collider = new int[]{180, 280};
     
     private int nitroLvl;
     
     private boolean isNitroPressed;
     private boolean isJumpPressed;
     
-    public Racer(int i, int[] p, WebSocketSession s){
+    public Racer(int i, float[] p, WebSocketSession s){
         this.id = i;
         this.session = s;
         
@@ -107,7 +108,7 @@ public class Racer {
                 //COMPROBAR SI SALTA
                 if(this.isJumpPressed){
                 
-                    this.vel[1] = 7;
+                    this.vel[1] = -7;
                     this.stateAct = states.get(2);
                     
                 }
@@ -156,8 +157,8 @@ public class Racer {
                     
                     this.updatePosition();
                     //VelY-- hasta llegar a la línea actual
-                    vel[1]--;
-                    if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                    vel[1]++;
+                    if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
                         vel[1] = 0;
                         pos[1] = LINE_HEIGHTS[this.getLineaActual()];
                     }
@@ -171,9 +172,9 @@ public class Racer {
                 //Actualizar posición
                 this.updatePosition();
 
-                if(this.vel[1] > 0){
+                if(this.vel[1] < 0){
                 
-                    if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
+                    if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
                         vel[1] = 0;
                         pos[1] = LINE_HEIGHTS[this.getLineaActual()];
                         this.stateAct = states.get(0);
@@ -181,7 +182,7 @@ public class Racer {
                     
                 } else {
                     
-                    if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                    if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
                         vel[1] = 0;
                         pos[1] = LINE_HEIGHTS[this.getLineaActual()];
                         this.stateAct = states.get(0);
@@ -202,9 +203,9 @@ public class Racer {
         this.pos[0] = this.pos[0] + this.vel[0];
         this.pos[1] = this.pos[1] + this.vel[1];
         
-        if (pos[0] <= 15){
+        if (pos[0] <= 75){
         
-            pos[0] = 15;
+            pos[0] = 75;
             vel[0] = 0;
             
             int stateToChange = (this.vel[1] == 0) ? 0 : 2;
@@ -212,9 +213,9 @@ public class Racer {
             
         }
         
-        if (pos[0] >= 720){
+        if (pos[0] >= DIMENSIONS[0] - 75){
         
-            pos[0] = 720;
+            pos[0] = DIMENSIONS[0] - 75;
             vel[0] = 0;
             
         }
@@ -240,11 +241,11 @@ public class Racer {
         return id;
     }
 
-    public int[] getPos() {
+    public float[] getPos() {
         return pos;
     }
 
-    public void setPos(int[] pos) {
+    public void setPos(float[] pos) {
         this.pos = pos;
     }
 

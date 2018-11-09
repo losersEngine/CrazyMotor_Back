@@ -31,7 +31,8 @@ public class RaceGame {
     public Random rnd = new Random(System.currentTimeMillis());
     
     //1280, 720
-    public final static int[] LINE_HEIGHTS = new int[]{150, 450};
+    public final static int[] DIMENSIONS = new int[]{3100, 1860};
+    public final static int[] LINE_HEIGHTS = new int[]{DIMENSIONS[1]-160, 700};
     private final static long TIME_BETWEEN = 100;
     private int frame;
     
@@ -43,7 +44,7 @@ public class RaceGame {
     private List<PerlinNoise> noiseLines;
     private float[] noiseValues;
 
-    private long difficulty = 1;
+    private float difficulty = 1;
     private int id;
     
     private int velGame;
@@ -52,7 +53,9 @@ public class RaceGame {
     private ScheduledExecutorService scheduler;
     private FinishLine finish;
     
-    public RaceGame(int i, long dif){
+    public RaceGame(int i, float dif){
+        
+        scheduler = Executors.newScheduledThreadPool(4);
 
         racers = new ConcurrentHashMap<>();
         numRacers = new AtomicInteger();
@@ -67,7 +70,7 @@ public class RaceGame {
         
         noiseValues = new float[]{0.5f, 0.5f};
         
-        velGame = -5;
+        velGame = Math.round(-20 * dif);
         frame = 1;
         
         finish = null;
@@ -81,7 +84,7 @@ public class RaceGame {
         }
         
         //////////////////////////////////////////////////////////////////////
-        List<Racer> players = (List<Racer>) this.getRacers();
+        Collection<Racer> players = this.getRacers();
         StringBuilder playersInfo = new StringBuilder();
         playersInfo.append("{ \"function\": \"join\", \"params\": { \"pj\": [ ");
 
@@ -89,7 +92,7 @@ public class RaceGame {
         while(toSend.hasNext()){
             Racer act = toSend.next();
 
-            playersInfo.append(String.format("{ \"id\": %d, \"pos\": %d }", act.getId(), act.getPos()));
+            playersInfo.append(String.format("{ \"id\": %d, \"pos\": [ %f, %f ] }", act.getId(), act.getPos()[0], act.getPos()[1]));
 
             if(toSend.hasNext())
                 playersInfo.append(", ");
@@ -117,6 +120,7 @@ public class RaceGame {
                     try {
                         String msg = "{ \"function\": \"start\", \"params\": {} }";
                         broadcast(msg);
+                        startTimer();
                     } catch (Exception ex) {
                         Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -152,8 +156,8 @@ public class RaceGame {
                 scheduler.shutdown();
             }*/
             
-            List<Racer> players = (List<Racer>) this.getRacers();
-            this.stopTimer(players.get(0));
+            Collection<Racer> players = this.getRacers();
+            this.stopTimer((Racer)players.toArray()[0]);
         }
         
     }
@@ -187,9 +191,18 @@ public class RaceGame {
         //Update racers
         //Destroy props
         
+        List<Integer> toDestroy = new ArrayList<>();
+        int index = -1;
+        
         for(Prop p : props){
+            index++;
             p.update(velGame);
+            
+            if(p.isToBreak())
+                toDestroy.add(index);
         }
+        
+        
         
         for(Racer r : this.getRacers()){
             r.update(props);
@@ -199,12 +212,8 @@ public class RaceGame {
             }
         }
         
-        Iterator<Prop> toRemove = props.iterator();
-        while(toRemove.hasNext()){
-            Prop act = toRemove.next();
-            
-            if(act.isToBreak())
-                toRemove.remove();
+        for(Integer d : toDestroy){
+            props.remove(d);
         }
         
         this.addProp();
@@ -212,11 +221,20 @@ public class RaceGame {
         //////////////////////////////////////////////////////////////////////////
         StringBuilder playersInfo = new StringBuilder();
         
-        List<Racer> players = (List<Racer>) this.getRacers();
-        Racer racerAct = players.get(0);
-        playersInfo.append(String.format("\"pj\": [ { \"id\": %d, \"state\": %d, \"pos\": %d },", racerAct.getId(), racerAct.getStateAct(), racerAct.getPos()));
-        racerAct = players.get(1);
-        playersInfo.append(String.format(" { \"id\": %d, \"state\": %d, \"pos\": %d } ]", racerAct.getId(), racerAct.getStateAct(), racerAct.getPos()));
+        Collection<Racer> players = this.getRacers();
+        
+        playersInfo.append("\"pj\": [ ");
+        
+        Iterator<Racer> toSendR = players.iterator();
+        while(toSendR.hasNext()){
+            Racer act = toSendR.next();
+            
+            playersInfo.append(String.format("{ \"id\": %d, \"state\": \"%s\", \"pos\": [ %f, %f ] }", act.getId(), act.getStateAct(), act.getPos()[0], act.getPos()[1]));
+            
+            if(toSendR.hasNext())
+                playersInfo.append(", ");
+        }
+        playersInfo.append(" ]");
         
         //////////////////////////////////////////////////////////////////////////
         StringBuilder propsInfo = new StringBuilder();
@@ -227,7 +245,7 @@ public class RaceGame {
         while(toSend.hasNext()){
             Prop act = toSend.next();
             
-            propsInfo.append(String.format("{ \"type\": %d, \"pos\": %d, \"state\": %d }", act.getType(), act.getPosition(), act.getType()));
+            propsInfo.append(String.format("{ \"type\": \"%s\", \"pos\": [ %f, %f ], \"state\": %d }", act.getType(), act.getPosition()[0], act.getPosition()[1], act.getState()));
             
             if(toSend.hasNext())
                 propsInfo.append(", ");
@@ -238,7 +256,7 @@ public class RaceGame {
         //////////////////////////////////////////////////////////////////////////
         StringBuilder msg = new StringBuilder();
         
-        msg.append("{ \"function\": \"update\", \"params\": { " + playersInfo.toString() + ", " + propsInfo.toString() + " } }");
+        msg.append(String.format("{ \"function\": \"update\", \"params\": { %s, %s } }", playersInfo.toString(), propsInfo.toString()));
         
         //////////////////////////////////////////////////////////////////////////
         try {
@@ -267,18 +285,18 @@ public class RaceGame {
             
             if (prob < 2){
                 //Láser
-                props.add(new Laser(new float[]{1080 , 0}));
+                props.add(new Laser(new float[]{DIMENSIONS[0] + 100 , DIMENSIONS[1] - 230}));
             } else{
                 //Caja
-                props.add(new Box(new float[]{1080 ,LINE_HEIGHTS[0]}));
+                props.add(new Box(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[0]}));
             }
             
         } else if(cambioAbajo > 60){
             //Spawn Trampolín
-            props.add(new Trampoline(new float[]{1080 ,LINE_HEIGHTS[0]}));
+            props.add(new Trampoline(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[0] + 20}));
         } else if(cambioAbajo < -35){
             //Spawn nitro
-            props.add(new Nitro(new float[]{1080 ,LINE_HEIGHTS[0] + 30}));
+            props.add(new Nitro(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[0] - 200}));
         }
         
         ///////////////////////////////////////////7
@@ -288,17 +306,17 @@ public class RaceGame {
             
             if (prob < 2){
                 //Láser
-                props.add(new Laser(new float[]{1080 , 0}));
+                props.add(new Laser(new float[]{DIMENSIONS[0] + 100 , DIMENSIONS[1] - 230}));
             } else{
                 //Caja
-                props.add(new Box(new float[]{1080 ,LINE_HEIGHTS[1]}));
+                props.add(new Box(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[1]}));
             }
         } else if(cambioArriba > 60){
             //Spawn Fall
-            props.add(new Fall(new float[]{1080 ,LINE_HEIGHTS[1]}));
+            props.add(new Fall(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[1] + 200}));
         } else if(cambioArriba < -35){
             //Spawn nitro
-            props.add(new Nitro(new float[]{1080 ,LINE_HEIGHTS[1] + 30}));
+            props.add(new Nitro(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[1] - 200}));
         }
         
     }
@@ -308,11 +326,11 @@ public class RaceGame {
         RaceGame that = this;
         
         scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(() -> step(), TIME_BETWEEN/difficulty, TIME_BETWEEN/difficulty, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(() -> step(), TIME_BETWEEN, TIME_BETWEEN, TimeUnit.MILLISECONDS);
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                finish = new FinishLine(new float[]{1080, 720}, new int[]{10, 720}, that);
+                finish = new FinishLine(new float[]{1080, 720}, that);
             }
         }, 120, TimeUnit.SECONDS);
         
@@ -345,7 +363,7 @@ public class RaceGame {
         return numRacers.get();
     }
 
-    public long getDifficulty() {
+    public float getDifficulty() {
         return difficulty;
     }
 

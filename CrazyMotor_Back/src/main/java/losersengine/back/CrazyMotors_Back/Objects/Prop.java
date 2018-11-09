@@ -8,6 +8,7 @@ public abstract class Prop {
     
     //Su posición es actualizada en el mapa en sí, dado que todos los props tienen la misma velocidad en x y 0 en y
     //Añadir un collider y un método collide
+    public final static int[] DIMENSIONS = new int[]{3100, 1860};
     
     protected float[] position = new float[2];
     protected int[] collider = new int[2];
@@ -44,7 +45,7 @@ public abstract class Prop {
         
         boolean coll = this.state == 0; //Sólo se puede colisionar con objetos que estén en state 1 (Caja sin romper, láser activo...)
         
-        int[] posRaz = raz.getPos();
+        float[] posRaz = raz.getPos();
         int[] colRaz = raz.getCollider();
         
         int[] vec = new int[2];
