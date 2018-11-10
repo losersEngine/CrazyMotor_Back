@@ -76,7 +76,8 @@ public class RaceController extends TextWebSocketHandler {
         this.Funciones.put("jumpPress", new Function(){                         //Params: true o false
             @Override
             public void ExecuteAction(String[] params, WebSocketSession session) {
-                Racer r = (Racer) session.getAttributes().get(RACER_ATT);
+                int racerId = (Integer) session.getAttributes().get(RACER_ATT);
+                Racer r = sessions.get(racerId);
                 
                 r.setIsJumpPressed(Boolean.parseBoolean(params[0]));
             }
@@ -85,7 +86,8 @@ public class RaceController extends TextWebSocketHandler {
         this.Funciones.put("nitroPress", new Function(){                        //Params: true o false
             @Override
             public void ExecuteAction(String[] params, WebSocketSession session) {
-                Racer r = (Racer) session.getAttributes().get(RACER_ATT);
+                int racerId = (Integer) session.getAttributes().get(RACER_ATT);
+                Racer r = sessions.get(racerId);
                 
                 r.setIsNitroPressed(Boolean.parseBoolean(params[0]));
             }
@@ -102,18 +104,13 @@ public class RaceController extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        
-        //System.out.println(message.getPayload());
-
-        
+            
         try{
 
             String msg = message.getPayload();
 
             Instruccion i = gson.fromJson(msg, Instruccion.class);
             Function f = Funciones.get(i.getFuncion());
-            System.out.println(i.getFuncion());
-            System.out.println(i.getParams().toString());
 
             Runnable tarea = () -> f.ExecuteAction(i.getParams(), session);                         //Cada tarea se ejecuta en un hilo
             executor.execute(tarea);
@@ -161,23 +158,6 @@ public class RaceController extends TextWebSocketHandler {
 
                 //Quitamos el corredor de sesiones
                 sessions.remove(razer.getId(), razer);
-                
-                 //Mensaje desconexión
-                /*
-                ObjectNode difusion = mapper.createObjectNode();
-                difusion.put("type","jugadorDesconecta");
-                difusion.put("name", name);
-                
-
-                //Mandamos mensaje, ya sincronizado en sendmessage
-                for(Racer rzr : sessions.values()){
-                    try {
-                        rzr.sendMessage(difusion.toString());
-                    } catch (Exception ex) {
-                        Logger.getLogger(RaceController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-                */
 
             }
         }

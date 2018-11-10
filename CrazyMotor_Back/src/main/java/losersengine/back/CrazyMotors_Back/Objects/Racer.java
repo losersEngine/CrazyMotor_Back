@@ -48,6 +48,8 @@ public class Racer {
         this.pos = p;
         this.vel = new int[]{0,0};
         
+        this.lineaActual = (this.pos[1] == LINE_HEIGHTS[0]) ? 0:1;
+        
         this.nitroLvl = 0;
         
         this.isJumpPressed = false;
@@ -90,9 +92,10 @@ public class Racer {
                 }
                 
                 //COMPROBAR SI NITRO
-                if(this.isNitroPressed){
+                if(this.isNitroPressed && this.nitroLvl > 0){
                 
                     this.vel[0] = 4;
+                    this.nitroLvl -= 5;
                     
                 }
                 
@@ -108,7 +111,7 @@ public class Racer {
                 //COMPROBAR SI SALTA
                 if(this.isJumpPressed){
                 
-                    this.vel[1] = -7;
+                    this.vel[1] = -40;
                     this.stateAct = states.get(2);
                     
                 }
@@ -157,10 +160,11 @@ public class Racer {
                     
                     this.updatePosition();
                     //VelY-- hasta llegar a la línea actual
-                    vel[1]++;
+                    vel[1]+=2;
                     if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
                         vel[1] = 0;
                         pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                        this.stateAct = states.get(0);
                     }
                 }
                 
@@ -296,7 +300,7 @@ public class Racer {
     }
 
     public synchronized void setIsNitroPressed(boolean isNitroPressed) {
-        this.isNitroPressed = isNitroPressed;
+            this.isNitroPressed = isNitroPressed;
     }
 
     public synchronized boolean isIsJumpPressed() {
@@ -304,7 +308,7 @@ public class Racer {
     }
 
     public synchronized void setIsJumpPressed(boolean isJumpPressed) {
-        this.isJumpPressed = isJumpPressed;
+            this.isJumpPressed = isJumpPressed;
     }
 
 }

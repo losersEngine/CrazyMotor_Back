@@ -8,32 +8,22 @@ import java.util.Random;
  */
 public class PerlinNoise {
     
-    private final float AVANCE = 0.5f;
-    private final float Amplitude = 50.0f;
+    private final float Amplitude = 100.0f;
+    private final float WaveLength = 10.0f;
     
     private Random rnd;
     
-    private int M,A,C,Z; //Z = seed
-    
     private float a, b;
     
-    public PerlinNoise(){
-        rnd = new Random(System.currentTimeMillis());
-        
-        M = 4294967;
-        A = 166456;
-        C = 1;
-        
-        Z = (int) Math.floor(rnd.nextDouble() * M);
-    
+    public PerlinNoise(int seed){
+        rnd = new Random(seed);
     
         a = rand();
         b = rand();
     }
     
     private float rand(){
-        Z = (A * Z + C) % M;
-        return Z / M;
+        return rnd.nextFloat() -0.5f;
     }
     
     private float interpolate(float pa, float pb, float px){
@@ -46,9 +36,19 @@ public class PerlinNoise {
     public float getValue(float x){
         //y = h/2 + interpolate(a,b, (x % wl) / wl) * amp;
         //h=100, amplitud = 50;
-        return 50 + interpolate(a, b, x) * Amplitude;
+        //float value = 50.0f + interpolate(a, b, x) * Amplitude;
         
-        //Es posible que tenga que llamar a rand dos veces aquí para actualizar a y b esto
+        float y;
+        
+        if(x % WaveLength == 0){
+            a = b;
+            b = rand();
+            y = 50.0f + a * Amplitude;
+        }else{
+            y = 50.0f + interpolate(a, b, (x % WaveLength) / WaveLength) * Amplitude;
+        }
+        
+        return y;
     }
     
 }

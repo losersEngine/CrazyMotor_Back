@@ -33,8 +33,8 @@ public class RaceGame {
     //1280, 720
     public final static int[] DIMENSIONS = new int[]{3100, 1860};
     public final static int[] LINE_HEIGHTS = new int[]{DIMENSIONS[1]-160, 700};
-    private final static long TIME_BETWEEN = 100;
-    private int frame;
+    private final static long TIME_BETWEEN = 25;
+    private float frame;
     
     private ConcurrentHashMap<Integer, Racer> racers; 
     private AtomicInteger numRacers; //Hacer que sólo se juegue cuando hayan 2 jugadores
@@ -65,13 +65,13 @@ public class RaceGame {
         props = new CopyOnWriteArrayList<>();
         
         noiseLines = new ArrayList<>();
-        noiseLines.add(new PerlinNoise());
-        noiseLines.add(new PerlinNoise());
+        noiseLines.add(new PerlinNoise(rnd.nextInt()));
+        noiseLines.add(new PerlinNoise(rnd.nextInt()));
         
-        noiseValues = new float[]{0.5f, 0.5f};
+        noiseValues = new float[]{50.0f, 50.0f};
         
-        velGame = Math.round(-20 * dif);
-        frame = 1;
+        velGame = Math.round(-5 * dif);
+        frame = 0.0f;
         
         finish = null;
 
@@ -146,7 +146,7 @@ public class RaceGame {
     public void removePlayer(Racer racer) {
 
         synchronized(racer){
-            racers.remove(Integer.valueOf(racer.getId()));
+            racers.remove(racer.getId());
         }
 
         int count = numRacers.decrementAndGet();
@@ -191,15 +191,13 @@ public class RaceGame {
         //Update racers
         //Destroy props
         
-        List<Integer> toDestroy = new ArrayList<>();
-        int index = -1;
+        List<Prop> toDestroy = new ArrayList<>();
         
         for(Prop p : props){
-            index++;
             p.update(velGame);
             
             if(p.isToBreak())
-                toDestroy.add(index);
+                toDestroy.add(p);
         }
         
         
@@ -212,10 +210,10 @@ public class RaceGame {
             }
         }
         
-        for(Integer d : toDestroy){
+        for(Prop d : toDestroy){
             props.remove(d);
         }
-        
+
         this.addProp();
         
         //////////////////////////////////////////////////////////////////////////
@@ -264,59 +262,53 @@ public class RaceGame {
         } catch (Exception ex) {
             Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        frame++;
 
     }
     
     public void addProp(){
         
-        //Comparamos con los valores anteriores
-        float aux = noiseLines.get(0).getValue(frame * (TIME_BETWEEN / 1000));
-        float cambioAbajo = aux - noiseValues[0];
-        noiseValues[0] = aux;
+        if (frame%2 == 0){
         
-        aux = noiseLines.get(1).getValue(frame * (TIME_BETWEEN / 1000));
-        float cambioArriba = aux - noiseValues[1];
-        noiseValues[1] = aux;
-        
-        ///////////////////////////////////////////7
-        if(cambioAbajo > 25 && cambioAbajo < 60){
-            //Spawn Caja o láser, hacer un rnd
-            int prob = rnd.nextInt(10);
-            
-            if (prob < 2){
-                //Láser
-                props.add(new Laser(new float[]{DIMENSIONS[0] + 100 , DIMENSIONS[1] - 230}));
-            } else{
-                //Caja
-                props.add(new Box(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[0]}));
+            int varianza;
+            float cambioAbajo = noiseLines.get(0).getValue(frame);
+            float cambioArriba = noiseLines.get(1).getValue(frame);
+
+            float corte = Math.abs(cambioAbajo - cambioArriba);
+
+            if (corte < 0.8f){
+
+                int probArriba = rnd.nextInt(100);
+                int probAbajo = rnd.nextInt(100);
+
+                varianza = rnd.nextInt(300) + 100;
+
+                if (probAbajo < 55){
+                    props.add(new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0]}));
+                } else if (probAbajo < 80){
+                    props.add(new Nitro(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] - 200}));
+                } else if (probAbajo < 95){
+                    props.add(new Laser(new float[]{DIMENSIONS[0] + varianza, DIMENSIONS[1] - 280}));
+                    //Dar nitro a players
+                } else {
+                    props.add(new Trampoline(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] + 20}));
+                }
+
+                varianza = rnd.nextInt(300) + 100;
+
+                if (probArriba < 55){
+                    props.add(new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[1]}));
+                } else if (probArriba < 80){
+                    props.add(new Nitro(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[1] - 200}));
+                } else if (probArriba < 95){
+                    props.add(new Laser(new float[]{DIMENSIONS[0] + varianza, DIMENSIONS[1] - 280}));
+                    //Dar nitro a players
+                } else {
+                    props.add(new Fall(new float[]{DIMENSIONS[0] + varianza ,LINE_HEIGHTS[1] + 200}));
+                }
+
             }
-            
-        } else if(cambioAbajo > 60){
-            //Spawn Trampolín
-            props.add(new Trampoline(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[0] + 20}));
-        } else if(cambioAbajo < -35){
-            //Spawn nitro
-            props.add(new Nitro(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[0] - 200}));
-        }
-        
-        ///////////////////////////////////////////7
-        if(cambioArriba > 25 && cambioArriba < 60){
-            //Spawn Caja o láser, hacer un rnd
-            int prob = rnd.nextInt(10);
-            
-            if (prob < 2){
-                //Láser
-                props.add(new Laser(new float[]{DIMENSIONS[0] + 100 , DIMENSIONS[1] - 230}));
-            } else{
-                //Caja
-                props.add(new Box(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[1]}));
-            }
-        } else if(cambioArriba > 60){
-            //Spawn Fall
-            props.add(new Fall(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[1] + 200}));
-        } else if(cambioArriba < -35){
-            //Spawn nitro
-            props.add(new Nitro(new float[]{DIMENSIONS[0] + 100 ,LINE_HEIGHTS[1] - 200}));
         }
         
     }
