@@ -2,7 +2,6 @@ package losersengine.back.CrazyMotors_Back;
 
 import losersengine.back.CrazyMotors_Back.Objects.Racer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -109,11 +108,13 @@ public class RaceController extends TextWebSocketHandler {
 
             String msg = message.getPayload();
 
-            Instruccion i = gson.fromJson(msg, Instruccion.class);
-            Function f = Funciones.get(i.getFuncion());
+            if (!msg.equals("undefined")){
+                Instruccion i = gson.fromJson(msg, Instruccion.class);
+                Function f = Funciones.get(i.getFuncion());
 
-            Runnable tarea = () -> f.ExecuteAction(i.getParams(), session);                         //Cada tarea se ejecuta en un hilo
-            executor.execute(tarea);
+                Runnable tarea = () -> f.ExecuteAction(i.getParams(), session);                         //Cada tarea se ejecuta en un hilo
+                executor.execute(tarea);
+            }
 
         }catch (Exception e) {
             System.err.println("Exception processing message " + message.getPayload());
@@ -184,7 +185,7 @@ public class RaceController extends TextWebSocketHandler {
 
                 if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif){
                     
-                    Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{100,RaceGame.LINE_HEIGHTS[1] }, session);
+                    Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[1]}, session);
                     session.getAttributes().put(RACER_ATT, raz.getId());
                     sessions.put(raz.getId(), raz);
                     
@@ -201,7 +202,7 @@ public class RaceController extends TextWebSocketHandler {
         RaceGame gam = new RaceGame(gameIds.getAndIncrement(), dif);
         
         synchronized(gam){
-            Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{100,RaceGame.LINE_HEIGHTS[0] }, session);
+            Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[0]}, session);
             session.getAttributes().put(RACER_ATT, raz.getId());
             sessions.put(raz.getId(), raz);
 

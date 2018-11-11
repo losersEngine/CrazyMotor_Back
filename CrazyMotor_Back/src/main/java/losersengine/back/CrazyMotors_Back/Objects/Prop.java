@@ -32,42 +32,32 @@ public abstract class Prop {
         
     }
     
-    public void update(int vel){
+    public void update(float vel){
     
         this.position[0] = this.position[0] + vel;
         
-        if(this.position[0] < -10)
+        if(this.position[0] < -70.0f)
             this.toBreak = true;
         
     }
     
     public boolean isColliding(Racer raz){
         
-        boolean coll = this.state == 0; //Sólo se puede colisionar con objetos que estén en state 1 (Caja sin romper, láser activo...)
+        boolean coll = this.state == 0; //Sólo se puede colisionar con objetos que estén en state 0 (Caja sin romper, láser activo...)
         
         float[] posRaz = raz.getPos();
         int[] colRaz = raz.getCollider();
         
-        int[] vec = new int[2];
-        vec[0] = (int) (posRaz[0] - this.position[0]);
-        vec[1] = (int) (posRaz[1] - this.position[1]);
-        
-        int dis = (int) Math.sqrt(Math.exp(vec[0]) + Math.exp(vec[1]));
+        float dis = Math.abs(posRaz[0] - this.position[0]);
         boolean xCol = false;
         boolean yCol = false;
         
         if(dis < 100 && coll){
             
-            yCol = (posRaz[1] > this.position[1]) && (posRaz[1] < (this.position[1] + this.collider[1])) ||
-                    ((posRaz[1] + colRaz[1]) > this.position[1]) && ((posRaz[1] + colRaz[1]) < (this.position[1] + this.collider[1])) ||
-                    (posRaz[1] > this.position[1]) && ((posRaz[1] + colRaz[1]) < (this.position[1] + this.collider[1])) ||
-                    (posRaz[1] < this.position[1]) && ((posRaz[1] + colRaz[1]) > (this.position[1] + this.collider[1]));
+            yCol = (posRaz[1] > (this.position[1] + this.collider[1])) && ((posRaz[1] + colRaz[1]) < this.position[1]);
         
             if(yCol)
-                xCol = ((posRaz[0] + colRaz[0]) > (this.position[0] - this.collider[0]) && (posRaz[0] - colRaz[0]) < (this.position[0] - this.collider[0])) ||
-                        ((posRaz[0] - colRaz[0]) > (this.position[0] - this.collider[0]) && (posRaz[0] - colRaz[0]) < (this.position[0] + this.collider[0])) ||
-                        ((posRaz[0] - colRaz[0]) > (this.position[0] - this.collider[0]) && (posRaz[0] + colRaz[0]) < (this.position[0] + this.collider[0])) ||
-                        ((posRaz[0] - colRaz[0]) < (this.position[0] - this.collider[0]) && (posRaz[0] + colRaz[0]) > (this.position[0] + this.collider[0]));
+                xCol = ((posRaz[0] + colRaz[0]) > (this.position[0] - this.collider[0])) && ((posRaz[0] - colRaz[0]) < (this.position[0] + this.collider[0]));
 
         }
         

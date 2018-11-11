@@ -2,6 +2,7 @@ package losersengine.back.CrazyMotors_Back.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.springframework.web.socket.TextMessage;
@@ -12,14 +13,15 @@ import org.springframework.web.socket.WebSocketSession;
  * @author Brisin
  */
 public class Racer {
-    
     private ScheduledExecutorService scheduler;
     
     public static List<String> states = new ArrayList<>();
     
     //1280, 720
-    public final static int[] DIMENSIONS = losersengine.back.CrazyMotors_Back.RaceGame.DIMENSIONS;
-    public final static int[] LINE_HEIGHTS = losersengine.back.CrazyMotors_Back.RaceGame.LINE_HEIGHTS;
+    public final static float[] DIMENSIONS = losersengine.back.CrazyMotors_Back.RaceGame.DIMENSIONS;
+    public final static float[] LINE_HEIGHTS = losersengine.back.CrazyMotors_Back.RaceGame.LINE_HEIGHTS;
+    
+    public final static float GRAVITY = 0.3f;//0.98f;
     
     private String stateAct;
     
@@ -29,14 +31,15 @@ public class Racer {
     private int lineaActual;
     
     //Aceleración
+    private float jumpAc;
     //Posición en X e Y
     private float pos[];
-    private int vel[];
+    private float vel[];
     
     //Collider (Ancho y alto en "radio")
-    private final static int[] collider = new int[]{180, 280};
+    private final static int[] collider = new int[]{27, -180};
     
-    private int nitroLvl;
+    private float nitroLvl;
     
     private boolean isNitroPressed;
     private boolean isJumpPressed;
@@ -46,7 +49,8 @@ public class Racer {
         this.session = s;
         
         this.pos = p;
-        this.vel = new int[]{0,0};
+        this.vel = new float[]{0,0};
+        this.jumpAc = 0.0f;
         
         this.lineaActual = (this.pos[1] == LINE_HEIGHTS[0]) ? 0:1;
         
@@ -54,6 +58,8 @@ public class Racer {
         
         this.isJumpPressed = false;
         this.isNitroPressed = false;
+        
+        scheduler = Executors.newScheduledThreadPool(1);
         
         states.add("Avanzando");
         states.add("Golpeado");
@@ -94,24 +100,24 @@ public class Racer {
                 //COMPROBAR SI NITRO
                 if(this.isNitroPressed && this.nitroLvl > 0){
                 
-                    this.vel[0] = 4;
-                    this.nitroLvl -= 5;
+                    this.vel[0] = 4.0f;
+                    this.nitroLvl -= 0.1f;
                     
                 }
                 
                 if(states.indexOf(stateAct) == 0){
                     //Actualizar posición
                     this.updatePosition();
-                    //VelX-- hasta llegar a 0 (Por si el nitro le ha subido la velocidad)
-                    vel[0]--;
-                    if(vel[0] < 0)
-                        vel[0] = 0;
+
+                    this.vel[0] -= 0.1f;
+                    if(this.vel[0] < 0)
+                        this.vel[0] = 0;
                 }
                 
                 //COMPROBAR SI SALTA
                 if(this.isJumpPressed){
                 
-                    this.vel[1] = -40;
+                    this.vel[1] = -8.0f;
                     this.stateAct = states.get(2);
                     
                 }
@@ -123,11 +129,11 @@ public class Racer {
                 //No colisión
                 //Actualizar posición
                 this.updatePosition();
-                //VelY-- hasta llegar a la línea actual
-                vel[1]--;
-                if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
-                    vel[1] = 0;
-                    pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+
+                this.vel[1]+= GRAVITY;
+                if(this.pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                    this.vel[1] = 0.0f;
+                    this.pos[1] = LINE_HEIGHTS[this.getLineaActual()];
                 }
                         
                 
@@ -139,7 +145,7 @@ public class Racer {
                 
                 //Colisión
                 
-                while(j < props.size() && states.indexOf(stateAct) == 0){
+                while(j < props.size() && states.indexOf(this.stateAct) == 0){
                 
                     Prop propAct = props.get(j);
                     if(propAct.isColliding(this)){
@@ -150,20 +156,15 @@ public class Racer {
                     
                 }
                 
-                if(states.indexOf(stateAct) == 2){
+                if(states.indexOf(this.stateAct) == 2){
                     //Actualizar posición
                     this.updatePosition();
-                    //VelX-- hasta llegar a 0 (Por si el nitro le ha subido la velocidad)
-                    vel[0]--;
-                    if(vel[0] < 0)
-                        vel[0] = 0;
-                    
-                    this.updatePosition();
-                    //VelY-- hasta llegar a la línea actual
-                    vel[1]+=2;
-                    if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
-                        vel[1] = 0;
-                        pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+
+                    this.vel[1] += ((this.isJumpPressed) ? GRAVITY/2 : GRAVITY);
+
+                    if(this.pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
+                        this.vel[1] = 0.0f;
+                        this.pos[1] = LINE_HEIGHTS[this.getLineaActual()];
                         this.stateAct = states.get(0);
                     }
                 }
@@ -207,9 +208,9 @@ public class Racer {
         this.pos[0] = this.pos[0] + this.vel[0];
         this.pos[1] = this.pos[1] + this.vel[1];
         
-        if (pos[0] <= 75){
+        if (pos[0] <= 60){
         
-            pos[0] = 75;
+            pos[0] = 60;
             vel[0] = 0;
             
             int stateToChange = (this.vel[1] == 0) ? 0 : 2;
@@ -217,9 +218,9 @@ public class Racer {
             
         }
         
-        if (pos[0] >= DIMENSIONS[0] - 75){
+        if (pos[0] >= DIMENSIONS[0] - 60){
         
-            pos[0] = DIMENSIONS[0] - 75;
+            pos[0] = DIMENSIONS[0] - 60;
             vel[0] = 0;
             
         }
@@ -228,9 +229,9 @@ public class Racer {
     
     public void stopGolpe(){
         scheduler.schedule(() -> {
-            int vel[] = this.getVel();
+            float vel[] = this.getVel();
         
-            this.setVel(new int[]{0, vel[1]});
+            this.setVel(new float[]{0, vel[1]});
             int state = (vel[1]==0) ? 0 : 2; //Si está cayendo o subiendo, se mantiene el state en saltando, si no, en avanzando
 
             this.setStateAct(state);
@@ -253,11 +254,11 @@ public class Racer {
         this.pos = pos;
     }
 
-    public int[] getVel() {
+    public float[] getVel() {
         return vel;
     }
 
-    public void setVel(int[] vel) {
+    public void setVel(float[] vel) {
         this.vel = vel;
     }
 
@@ -265,18 +266,18 @@ public class Racer {
         return collider;
     }
     
-    public int getNitroLvl() {
+    public float getNitroLvl() {
         return nitroLvl;
     }
 
-    public void setNitroLvl(int lvl) {
+    public void setNitroLvl(float lvl) {
         this.nitroLvl = lvl;
         
-        if(this.nitroLvl < 0)
-            this.nitroLvl = 0;
+        if(this.nitroLvl < 0.0f)
+            this.nitroLvl = 0.0f;
         
-        if(this.nitroLvl > 100)
-            this.nitroLvl = 100;
+        if(this.nitroLvl > 100.0f)
+            this.nitroLvl = 100.0f;
     }
 
     public String getStateAct() {

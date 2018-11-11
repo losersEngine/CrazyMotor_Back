@@ -16,7 +16,7 @@ public class Box extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Box(float[] pos) {
-        super(pos, new int[]{200,160});
+        super(pos, new int[]{50,-100});
         
         scheduler = Executors.newScheduledThreadPool(1);
         
@@ -29,7 +29,7 @@ public class Box extends Prop{
         raz.setStateAct(1);
         
         raz.setNitroLvl(0);
-        raz.setVel(new int[]{-2, 0});
+        raz.setVel(new float[]{-2.0f, 0});
         
         this.state = 1;
         scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);

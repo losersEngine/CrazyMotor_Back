@@ -16,7 +16,7 @@ public class Trampoline extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Trampoline(float[] pos) {
-        super(pos, new int[]{200, 130});
+        super(pos, new int[]{100, -30});
         
         scheduler = Executors.newScheduledThreadPool(1);
         
@@ -25,10 +25,10 @@ public class Trampoline extends Prop{
 
     @Override
     public void onCollision(Racer raz) {
-        int[] vel = raz.getVel();
+        float[] vel = raz.getVel();
         raz.setStateAct(3);
         
-        raz.setVel(new int[]{vel[0], -15});
+        raz.setVel(new float[]{vel[0], -15.0f});
         raz.setLineaActual(1);
         
         this.state = 1;

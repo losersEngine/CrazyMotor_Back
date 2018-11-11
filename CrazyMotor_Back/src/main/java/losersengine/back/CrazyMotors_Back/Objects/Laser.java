@@ -17,7 +17,7 @@ public class Laser extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Laser(float[] pos) {
-        super(pos, new int[]{200, 2000});
+        super(pos, new int[]{45, -1300});
         
         scheduler = Executors.newScheduledThreadPool(1);
         
@@ -36,9 +36,8 @@ public class Laser extends Prop{
         raz.setStateAct(1);
         
         raz.setNitroLvl(0);
-        raz.setVel(new int[]{-5, 0});
-        
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        raz.setVel(new float[]{-5.0f, 0});
+
     }
     
 }

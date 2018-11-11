@@ -31,9 +31,10 @@ public class RaceGame {
     public Random rnd = new Random(System.currentTimeMillis());
     
     //1280, 720
-    public final static int[] DIMENSIONS = new int[]{3100, 1860};
-    public final static int[] LINE_HEIGHTS = new int[]{DIMENSIONS[1]-160, 700};
-    private final static long TIME_BETWEEN = 25;
+    public final static float[] DIMENSIONS = new float[]{1800.0f, 1080.0f};
+    public final static float[] LINE_HEIGHTS = new float[]{950.0f, 370.0f};
+    private final static long TIME_BETWEEN = 10;
+    private final static long TIME_FINAL = 120;
     private float frame;
     
     private ConcurrentHashMap<Integer, Racer> racers; 
@@ -47,7 +48,7 @@ public class RaceGame {
     private float difficulty = 1;
     private int id;
     
-    private int velGame;
+    private float velGame;
     private boolean inGame;
 
     private ScheduledExecutorService scheduler;
@@ -70,7 +71,7 @@ public class RaceGame {
         
         noiseValues = new float[]{50.0f, 50.0f};
         
-        velGame = Math.round(-5 * dif);
+        velGame = -3.0f * dif;
         frame = 0.0f;
         
         finish = null;
@@ -91,8 +92,8 @@ public class RaceGame {
         Iterator<Racer> toSend = players.iterator();
         while(toSend.hasNext()){
             Racer act = toSend.next();
-
-            playersInfo.append(String.format("{ \"id\": %d, \"pos\": [ %f, %f ] }", act.getId(), act.getPos()[0], act.getPos()[1]));
+            
+            playersInfo.append(String.format("{ \"id\": %d, \"pos\": [ %s, %s ] }", act.getId(), act.getPos()[0], act.getPos()[1]));
 
             if(toSend.hasNext())
                 playersInfo.append(", ");
@@ -101,6 +102,7 @@ public class RaceGame {
         playersInfo.append(" ] } }");
 
         try {
+            System.out.println(playersInfo.toString());
             this.broadcast(playersInfo.toString());
         } catch (Exception ex) {
             Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
@@ -179,41 +181,30 @@ public class RaceGame {
         
     }
     
-    public void step(){//TODO
-        //Tener 3 variables de isPressed en racer, una por botón existente  -->Estos modifican su valor a partir de websockets desde front
-        //Tener 3 estados en racer, corriendo-saltando-colisión             -->Estos van por Backend
-        //Actualizar todos los racers
-            //Victoria
-            //Colisiones
-            //Avance
-            
-        //Update props
-        //Update racers
-        //Destroy props
-        
+    public void step(){
+
         List<Prop> toDestroy = new ArrayList<>();
         
-        for(Prop p : props){
-            p.update(velGame);
-            
-            if(p.isToBreak())
-                toDestroy.add(p);
-        }
+        synchronized(props){
+            for(Prop p : props){
+                p.update(velGame);
+
+                if(p.isToBreak())
+                    toDestroy.add(p);
+            }
         
+            for(Racer r : this.getRacers()){
+                r.update(props);
+            }
         
-        
-        for(Racer r : this.getRacers()){
-            r.update(props);
-            
-            if(finish != null){
-                finish.isColliding(r);
+
+            for(Prop d : toDestroy){
+                System.out.println("Ey");
+                props.remove(d);
+                System.out.println("Ey 2");
             }
         }
         
-        for(Prop d : toDestroy){
-            props.remove(d);
-        }
-
         this.addProp();
         
         //////////////////////////////////////////////////////////////////////////
@@ -227,7 +218,7 @@ public class RaceGame {
         while(toSendR.hasNext()){
             Racer act = toSendR.next();
             
-            playersInfo.append(String.format("{ \"id\": %d, \"state\": \"%s\", \"pos\": [ %f, %f ] }", act.getId(), act.getStateAct(), act.getPos()[0], act.getPos()[1]));
+            playersInfo.append(String.format("{ \"id\": %d, \"state\": \"%s\", \"pos\": [ %s, %s ], \"nitroLvl\": %s }", act.getId(), act.getStateAct(), act.getPos()[0], act.getPos()[1], act.getNitroLvl()));
             
             if(toSendR.hasNext())
                 playersInfo.append(", ");
@@ -243,7 +234,7 @@ public class RaceGame {
         while(toSend.hasNext()){
             Prop act = toSend.next();
             
-            propsInfo.append(String.format("{ \"type\": \"%s\", \"pos\": [ %f, %f ], \"state\": %d }", act.getType(), act.getPosition()[0], act.getPosition()[1], act.getState()));
+            propsInfo.append(String.format("{ \"type\": \"%s\", \"pos\": [ %s, %s ], \"state\": %d }", act.getType(), act.getPosition()[0], act.getPosition()[1], act.getState()));
             
             if(toSend.hasNext())
                 propsInfo.append(", ");
@@ -256,9 +247,20 @@ public class RaceGame {
         
         msg.append(String.format("{ \"function\": \"update\", \"params\": { %s, %s } }", playersInfo.toString(), propsInfo.toString()));
         
-        //////////////////////////////////////////////////////////////////////////
         try {
             this.broadcast(msg.toString());
+            //////////////////////////////////////////////////////////////////////////
+            if(frame%100 == 0){
+                float percentaje = frame / TIME_FINAL;
+                
+                if(percentaje > 100.0f)
+                    percentaje = 100.0f;
+                
+                String percent = "{ \"function\": \"updateGoal\", \"params\": { \"percent\": " + percentaje + " } }";
+                
+                this.broadcast(percent);
+            }
+            //////////////////////////////////////////////////////////////////////////
         } catch (Exception ex) {
             Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -269,45 +271,61 @@ public class RaceGame {
     
     public void addProp(){
         
-        if (frame%2 == 0){
+        if (frame%3 == 0){
         
             int varianza;
-            float cambioAbajo = noiseLines.get(0).getValue(frame);
-            float cambioArriba = noiseLines.get(1).getValue(frame);
+            float cambioAbajo = noiseLines.get(0).getValue(frame * 1.05f);
+            float cambioArriba = noiseLines.get(1).getValue(frame * 1.05f);
 
             float corte = Math.abs(cambioAbajo - cambioArriba);
 
             if (corte < 0.8f){
-
+                
                 int probArriba = rnd.nextInt(100);
                 int probAbajo = rnd.nextInt(100);
 
-                varianza = rnd.nextInt(300) + 100;
+                Prop pToAddArriba = null;
+                Prop pToAddAbajo = null;
+
+                varianza = rnd.nextInt(200) + 50;
 
                 if (probAbajo < 55){
-                    props.add(new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0]}));
+                    pToAddAbajo = new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0]});
                 } else if (probAbajo < 80){
-                    props.add(new Nitro(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] - 200}));
+                    pToAddAbajo = new Nitro(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] - 100});
                 } else if (probAbajo < 95){
-                    props.add(new Laser(new float[]{DIMENSIONS[0] + varianza, DIMENSIONS[1] - 280}));
+                    pToAddAbajo = new Laser(new float[]{DIMENSIONS[0] + varianza, DIMENSIONS[1] - 110});
                     //Dar nitro a players
+
+                    for(Racer r: this.getRacers()){
+                        r.setNitroLvl(r.getNitroLvl() + 5);
+                    }
                 } else {
-                    props.add(new Trampoline(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] + 20}));
+                    pToAddAbajo = new Trampoline(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] + 5});
                 }
 
-                varianza = rnd.nextInt(300) + 100;
+                varianza = rnd.nextInt(200) + 50;
 
                 if (probArriba < 55){
-                    props.add(new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[1]}));
+                    pToAddArriba = new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[1]});
                 } else if (probArriba < 80){
-                    props.add(new Nitro(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[1] - 200}));
+                    pToAddArriba = new Nitro(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[1] - 100});
                 } else if (probArriba < 95){
-                    props.add(new Laser(new float[]{DIMENSIONS[0] + varianza, DIMENSIONS[1] - 280}));
+                    pToAddArriba = new Laser(new float[]{DIMENSIONS[0] + varianza, DIMENSIONS[1] -110});
                     //Dar nitro a players
-                } else {
-                    props.add(new Fall(new float[]{DIMENSIONS[0] + varianza ,LINE_HEIGHTS[1] + 200}));
-                }
 
+                    for(Racer r: this.getRacers()){
+                        r.setNitroLvl(r.getNitroLvl() + 5);
+                    }
+                } else {
+                    pToAddArriba = new Fall(new float[]{DIMENSIONS[0] + varianza ,LINE_HEIGHTS[1] + 190});
+                }
+                
+                synchronized(props){
+                    props.add(pToAddArriba);
+                    props.add(pToAddAbajo);
+                }
+                
             }
         }
         
@@ -322,9 +340,12 @@ public class RaceGame {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                finish = new FinishLine(new float[]{1080, 720}, that);
+                finish = new FinishLine(new float[]{DIMENSIONS[0] + 100, 300}, that);
+                synchronized(props){
+                    props.add(finish);
+                }
             }
-        }, 120, TimeUnit.SECONDS);
+        }, TIME_FINAL, TimeUnit.SECONDS);
         
     }
     
