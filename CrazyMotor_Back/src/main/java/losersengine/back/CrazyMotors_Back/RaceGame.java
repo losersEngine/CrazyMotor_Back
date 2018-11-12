@@ -13,6 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import losersengine.back.CrazyMotors_Back.Objects.Box;
@@ -37,6 +39,9 @@ public class RaceGame {
     private final static long TIME_FINAL = 120;
     private float frame;
     
+    private Lock finalJuego = new ReentrantLock();
+    private boolean endGame;
+    
     private ConcurrentHashMap<Integer, Racer> racers; 
     private AtomicInteger numRacers; //Hacer que sólo se juegue cuando hayan 2 jugadores
     private List<Prop> props;
@@ -49,7 +54,6 @@ public class RaceGame {
     private int id;
     
     private float velGame;
-    private boolean inGame;
 
     private ScheduledExecutorService scheduler;
     private FinishLine finish;
@@ -57,10 +61,16 @@ public class RaceGame {
     public RaceGame(int i, float dif){
         
         scheduler = Executors.newScheduledThreadPool(4);
-
+        
+        finalJuego.lock();
+        try {
+            endGame = false;
+        } finally {
+            finalJuego.unlock();
+        }
+        
         racers = new ConcurrentHashMap<>();
         numRacers = new AtomicInteger();
-        inGame = false;
         difficulty = dif;
         id = i;
         props = new CopyOnWriteArrayList<>();
@@ -274,8 +284,8 @@ public class RaceGame {
         if (frame%3 == 0){
         
             int varianza;
-            float cambioAbajo = noiseLines.get(0).getValue(frame * 1.05f);
-            float cambioArriba = noiseLines.get(1).getValue(frame * 1.05f);
+            float cambioAbajo = noiseLines.get(0).getValue(frame * 1.0005f);
+            float cambioArriba = noiseLines.get(1).getValue(frame * 1.0005f);
 
             float corte = Math.abs(cambioAbajo - cambioArriba);
 
@@ -340,7 +350,7 @@ public class RaceGame {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                finish = new FinishLine(new float[]{DIMENSIONS[0] + 100, 300}, that);
+                finish = new FinishLine(new float[]{DIMENSIONS[0] + 100, LINE_HEIGHTS[0]}, that);
                 synchronized(props){
                     props.add(finish);
                 }
@@ -355,24 +365,32 @@ public class RaceGame {
             if (scheduler != null) {
                 scheduler.shutdown();
             }
-
             //Avisa a los js que ha acabado la partida
             //TODO
 
-            this.setInGame(false);
+
+            finalJuego.lock();
+            try {
+                if (!endGame){
+                    String msg = "{ \"function\": \"finPartida\", \"params\": { \"winner\": " + raz.getId() + "} }";
+                    broadcast(msg);
+                    
+                    endGame = true;
+                }
+            } finally {
+                finalJuego.unlock();
+            }
             
-            String msg = "{ \"function\": \"finPartida\", \"params\": { \"winner\": " + raz.getId() + "} }";
-            broadcast(msg);
 
         } catch (Exception ex) {
             Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-        
-    public synchronized int getNum(){
+
+    public synchronized int getNum() {
         return numRacers.get();
     }
 
@@ -382,14 +400,6 @@ public class RaceGame {
 
     public void setDifficulty(long difficulty) {
         this.difficulty = difficulty;
-    }
-
-    public boolean isInGame() {
-        return inGame;
-    }
-
-    public void setInGame(boolean inGame) {
-        this.inGame = inGame;
     }
 
     public int getId() {

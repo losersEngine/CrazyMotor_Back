@@ -101,7 +101,7 @@ public class Racer {
                 if(this.isNitroPressed && this.nitroLvl > 0){
                 
                     this.vel[0] = 4.0f;
-                    this.nitroLvl -= 0.1f;
+                    this.nitroLvl -= 0.3f;
                     
                 }
                 

@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -19,6 +21,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class RaceController extends TextWebSocketHandler {
     
     private static final Executor executor = Executors.newCachedThreadPool();
+    
+    private Lock enterSala = new ReentrantLock();
 
     private static final String RACER_ATT = "racer";
     private static final String SALA_ATT = "sala";
@@ -46,10 +50,15 @@ public class RaceController extends TextWebSocketHandler {
             }
         });
         
-        this.Funciones.put("unirSala", new Function(){
+        this.Funciones.put("unirSala", new Function(){                  //Params: diff
             @Override
-            public void ExecuteAction(String[] params, WebSocketSession session) {      //Params: diff
-                enterGame(Float.parseFloat(params[0]), session);
+            public void ExecuteAction(String[] params, WebSocketSession session) {                      
+                enterSala.lock();
+                try {
+                    enterGame(Float.parseFloat(params[0]), session);
+                } finally {
+                    enterSala.unlock();
+                }
             }
         });
         
@@ -181,37 +190,30 @@ public class RaceController extends TextWebSocketHandler {
 
             sg = salas.get(s);
 
-            synchronized(sg){
+            if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif){
 
-                if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif){
-                    
-                    Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[1]}, session);
-                    session.getAttributes().put(RACER_ATT, raz.getId());
-                    sessions.put(raz.getId(), raz);
-                    
-                    sg.addRacer(raz);
-                    session.getAttributes().put(SALA_ATT, sg.getId());
-                    
-                    return;
-                }
+                Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[1]}, session);
+                session.getAttributes().put(RACER_ATT, raz.getId());
+                sessions.put(raz.getId(), raz);
 
+                sg.addRacer(raz);
+                session.getAttributes().put(SALA_ATT, sg.getId());
+
+                return;
             }
 
         }
         
         RaceGame gam = new RaceGame(gameIds.getAndIncrement(), dif);
-        
-        synchronized(gam){
-            Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[0]}, session);
-            session.getAttributes().put(RACER_ATT, raz.getId());
-            sessions.put(raz.getId(), raz);
 
-            gam.addRacer(raz);
-            session.getAttributes().put(SALA_ATT, gam.getId());
-            
-            salas.put(gam.getId(), gam);
-        }
+        Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[0]}, session);
+        session.getAttributes().put(RACER_ATT, raz.getId());
+        sessions.put(raz.getId(), raz);
 
+        gam.addRacer(raz);
+        session.getAttributes().put(SALA_ATT, gam.getId());
+
+        salas.put(gam.getId(), gam);
     }
     
 }
