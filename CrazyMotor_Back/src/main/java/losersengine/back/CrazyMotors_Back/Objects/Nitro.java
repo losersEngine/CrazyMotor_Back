@@ -18,7 +18,7 @@ public class Nitro extends Prop{
     @Override
     public void onCollision(Racer raz) {
         
-        raz.setNitroLvl(raz.getNitroLvl() + 20);
+        raz.setNitroLvl(raz.getNitroLvl() + 35);
         
         this.toBreak = true;
         

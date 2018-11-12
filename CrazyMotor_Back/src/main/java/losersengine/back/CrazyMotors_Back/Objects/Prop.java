@@ -82,4 +82,8 @@ public abstract class Prop {
         return type;
     }
     
+    public int getWidth(){
+        return collider[0] * 2;
+    }
+    
 }

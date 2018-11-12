@@ -39,4 +39,14 @@ public class Box extends Prop{
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
+    public boolean isRanged(Box box, float frame){
+        
+        float[] posBox = box.getPosition();
+        float colRaz = Racer.getColX(); //* frame * 0.00001f;
+        
+        boolean xCol = ((posBox[0] + colRaz) > (this.position[0] - colRaz)) && ((posBox[0] - colRaz) < (this.position[0] + colRaz));
+        
+        return (xCol);
+    }
+    
 }

@@ -116,6 +116,8 @@ public class RaceController extends TextWebSocketHandler {
         try{
 
             String msg = message.getPayload();
+            
+            System.out.println(msg);
 
             if (!msg.equals("undefined")){
                 Instruccion i = gson.fromJson(msg, Instruccion.class);

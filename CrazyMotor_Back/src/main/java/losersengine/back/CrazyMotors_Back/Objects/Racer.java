@@ -54,7 +54,7 @@ public class Racer {
         
         this.lineaActual = (this.pos[1] == LINE_HEIGHTS[0]) ? 0:1;
         
-        this.nitroLvl = 0;
+        this.nitroLvl = 10.0f;
         
         this.isJumpPressed = false;
         this.isNitroPressed = false;
@@ -101,7 +101,7 @@ public class Racer {
                 if(this.isNitroPressed && this.nitroLvl > 0){
                 
                     this.vel[0] = 4.0f;
-                    this.nitroLvl -= 0.3f;
+                    this.nitroLvl -= 0.2f;
                     
                 }
                 
@@ -310,6 +310,10 @@ public class Racer {
 
     public synchronized void setIsJumpPressed(boolean isJumpPressed) {
             this.isJumpPressed = isJumpPressed;
+    }
+    
+    public static int getColX(){
+        return collider[0];
     }
 
 }
