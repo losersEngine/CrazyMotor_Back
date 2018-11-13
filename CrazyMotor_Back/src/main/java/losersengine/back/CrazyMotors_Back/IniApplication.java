@@ -10,7 +10,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 @SpringBootApplication
 @EnableWebSocket
-public class RestPruebaIniApplication implements WebSocketConfigurer {
+public class IniApplication implements WebSocketConfigurer {
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@ public class RestPruebaIniApplication implements WebSocketConfigurer {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public static void main(String[] args) {
-		SpringApplication.run(RestPruebaIniApplication.class, args);
+		SpringApplication.run(IniApplication.class, args);
 	}
         
         @Override
