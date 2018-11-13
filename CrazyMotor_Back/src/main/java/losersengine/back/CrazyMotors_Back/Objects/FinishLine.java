@@ -16,7 +16,7 @@ public class FinishLine extends Prop{
     RaceGame Game;
 
     public FinishLine(float[] pos, RaceGame game) {
-        super(pos, new int[]{100,-500});
+        super(pos, new int[]{120,-900});
         
         Game = game;
         this.type = "finishLine";

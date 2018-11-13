@@ -25,14 +25,10 @@ public class Trampoline extends Prop{
 
     @Override
     public void onCollision(Racer raz) {
-        float[] vel = raz.getVel();
-        raz.setStateAct(3);
-        
-        raz.setVel(new float[]{vel[0], -15.0f});
-        raz.setLineaActual(1);
-        
         this.state = 1;
         scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);
+        
+        raz.cambioLinea(-10.0f, 1); //1
     }
     
 }

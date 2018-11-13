@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -16,6 +18,8 @@ public class Racer {
     private ScheduledExecutorService scheduler;
     
     public static List<String> states = new ArrayList<>();
+    
+    private Lock cambioState = new ReentrantLock();
     
     //1280, 720
     public final static float[] DIMENSIONS = losersengine.back.CrazyMotors_Back.RaceGame.DIMENSIONS;
@@ -97,29 +101,30 @@ public class Racer {
                     
                 }
                 
-                //COMPROBAR SI NITRO
-                if(this.isNitroPressed && this.nitroLvl > 0){
-                
-                    this.vel[0] = 4.0f;
-                    this.nitroLvl -= 0.2f;
-                    
-                }
-                
-                if(states.indexOf(stateAct) == 0){
-                    //Actualizar posición
-                    this.updatePosition();
+                cambioState.lock();
+                try{
+                    if(states.indexOf(stateAct) == 0){
+                        //Actualizar posición
+                        this.updatePosition();
 
-                    this.vel[0] -= 0.1f;
-                    if(this.vel[0] < 0)
-                        this.vel[0] = 0;
-                }
-                
-                //COMPROBAR SI SALTA
-                if(this.isJumpPressed){
-                
-                    this.vel[1] = -8.0f;
-                    this.stateAct = states.get(2);
-                    
+                        this.vel[0] -= 0.1f;
+                        if(this.vel[0] < 0)
+                            this.vel[0] = 0;
+                        
+                        //COMPROBAR SI NITRO
+                        if(this.isNitroPressed && this.nitroLvl > 0){
+                            this.vel[0] = 4.0f;
+                            this.nitroLvl -= 0.2f;
+                        }
+                        
+                        //COMPROBAR SI SALTA
+                        if(this.isJumpPressed){
+                            this.vel[1] = -8.0f;
+                            this.stateAct = states.get(2);
+                        }
+                    }
+                } finally{
+                    cambioState.unlock();
                 }
 
                 break;
@@ -134,6 +139,21 @@ public class Racer {
                 if(this.pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
                     this.vel[1] = 0.0f;
                     this.pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                }
+                
+                int k = 0;
+                
+                //Colisión
+                
+                while(k < props.size() && states.indexOf(stateAct) == 0){
+                
+                    Prop propAct = props.get(k);
+                    if(propAct.getType().equals("finishLine") && propAct.isColliding(this)){
+                        propAct.onCollision(this);
+                    }
+                    
+                    k++;
+                    
                 }
                         
                 
@@ -156,17 +176,22 @@ public class Racer {
                     
                 }
                 
-                if(states.indexOf(this.stateAct) == 2){
-                    //Actualizar posición
-                    this.updatePosition();
+                cambioState.lock();
+                try{
+                    if(states.indexOf(this.stateAct) == 2){
+                        //Actualizar posición
+                        this.updatePosition();
 
-                    this.vel[1] += ((this.isJumpPressed) ? GRAVITY/2 : GRAVITY);
+                        this.vel[1] += ((this.isJumpPressed) ? GRAVITY/2 : GRAVITY);
 
-                    if(this.pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
-                        this.vel[1] = 0.0f;
-                        this.pos[1] = LINE_HEIGHTS[this.getLineaActual()];
-                        this.stateAct = states.get(0);
+                        if(this.pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
+                            this.vel[1] = 0.0f;
+                            this.pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                            this.stateAct = states.get(0);
+                        }
                     }
+                } finally {
+                    cambioState.unlock();
                 }
                 
                 break;
@@ -177,22 +202,42 @@ public class Racer {
                 //Actualizar posición
                 this.updatePosition();
 
-                if(this.vel[1] < 0){
+                cambioState.lock();
+                try{
+                    if(this.vel[1] < 0){
+
+                        if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
+                            vel[1] = 0;
+                            pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                            this.stateAct = states.get(0);
+                        }
+
+                    } else {
+
+                        if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
+                            vel[1] = 0;
+                            pos[1] = LINE_HEIGHTS[this.getLineaActual()];
+                            this.stateAct = states.get(0);
+                        }
+
+                    }
+                } finally {
+                    cambioState.unlock();
+                }
                 
-                    if(pos[1] <= LINE_HEIGHTS[this.getLineaActual()]){
-                        vel[1] = 0;
-                        pos[1] = LINE_HEIGHTS[this.getLineaActual()];
-                        this.stateAct = states.get(0);
+                int u = 0;
+                
+                //Colisión
+                
+                while(u < props.size() && states.indexOf(stateAct) == 0){
+                
+                    Prop propAct = props.get(u);
+                    if(propAct.getType().equals("finishLine") && propAct.isColliding(this)){
+                        propAct.onCollision(this);
                     }
                     
-                } else {
+                    u++;
                     
-                    if(pos[1] >= LINE_HEIGHTS[this.getLineaActual()]){
-                        vel[1] = 0;
-                        pos[1] = LINE_HEIGHTS[this.getLineaActual()];
-                        this.stateAct = states.get(0);
-                    }
-                
                 }
                 
                 break;
@@ -234,7 +279,12 @@ public class Racer {
             this.setVel(new float[]{0, vel[1]});
             int state = (vel[1]==0) ? 0 : 2; //Si está cayendo o subiendo, se mantiene el state en saltando, si no, en avanzando
 
-            this.setStateAct(state);
+            cambioState.lock();
+            try {
+                this.setStateAct(state);
+            } finally {
+                cambioState.unlock();
+            }
         }, 2, TimeUnit.SECONDS);
     }
 
@@ -314,6 +364,18 @@ public class Racer {
     
     public static int getColX(){
         return collider[0];
+    }
+    
+    public void cambioLinea(float velY, int newLine){
+        cambioState.lock();
+        try{
+            this.setStateAct(3);
+        } finally {
+            cambioState.unlock();
+        }
+        
+        this.setVel(new float[]{vel[0], velY});
+        this.setLineaActual(newLine);
     }
 
 }
