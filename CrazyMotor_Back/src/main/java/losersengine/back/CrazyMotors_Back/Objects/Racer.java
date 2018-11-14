@@ -145,7 +145,7 @@ public class Racer {
                 
                 //Colisión
                 
-                while(k < props.size() && states.indexOf(stateAct) == 0){
+                while(k < props.size() && states.indexOf(stateAct) == 1){
                 
                     Prop propAct = props.get(k);
                     if(propAct.getType().equals("finishLine") && propAct.isColliding(this)){

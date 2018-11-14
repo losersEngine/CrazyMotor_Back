@@ -83,7 +83,7 @@ public class RaceGame {
         
         noiseValues = new float[]{50.0f, 50.0f};
         
-        velGame = -3.0f * dif;
+        velGame = -4.0f * dif;
         frame = 0.0f;
         
         finish = null;
