@@ -25,7 +25,7 @@ public class CrazyTest {
             
             wsc[0] = new WebSocketClient();
             wsc[0].onMessage((session, msg) -> {
-                System.out.println("TestMessage: "+msg);
+                //System.out.println("TestMessage: "+msg);
             });
                 
             wsc[1] = new WebSocketClient();
@@ -50,6 +50,58 @@ public class CrazyTest {
                     
             wsc[0].disconnect();
             Thread.sleep(2000);
+            
+            
+            msg = firstMsg.get();
+            assertTrue("The message should contain 'finPartida', but it is "+msg, msg.contains("finPartida"));
+            
+            wsc[1].disconnect();
+            
+        }
+        
+        @Test
+        public void testCarga() throws DeploymentException, IOException, URISyntaxException, InterruptedException {
+            
+            Thread.sleep(9000);
+            
+            AtomicReference<String> firstMsg = new AtomicReference<>();
+            WebSocketClient wsc[] = new WebSocketClient[10];
+            
+            for(int i = 0; i < wsc.length-1; i++){
+                wsc[i] = new WebSocketClient();
+                wsc[i].onMessage((session, msg) -> {
+                    //System.out.println("TestMessage: "+msg);
+                });
+            }
+            
+            
+                
+            wsc[9] = new WebSocketClient();
+            wsc[9].onMessage((session, msg) -> {
+                firstMsg.set(msg);
+            });
+            
+            String nmsg = "{\"funcion\": \"unirSala\", \"params\": [\"1\"]}";
+            //Conectar 2 jugadores
+            for(int i = 0; i < wsc.length; i++){
+                wsc[i].connect("ws://127.0.0.1:7070/race");
+                wsc[i].sendMessage(nmsg);
+            }
+
+            System.out.println("Connected");
+            Thread.sleep(5000);
+
+            //Comprobar el mensaje
+            String msg = firstMsg.get();
+            assertTrue("The message should contain 'update', but it is "+msg, msg.contains("update"));
+
+            for(int i = 0; i < wsc.length-1; i++){
+                wsc[i].disconnect();
+            }
+
+            Thread.sleep(5000);
+            wsc[9].disconnect();
+            Thread.sleep(500);
             
             msg = firstMsg.get();
             assertTrue("The message should contain 'finPartida', but it is "+msg, msg.contains("finPartida"));

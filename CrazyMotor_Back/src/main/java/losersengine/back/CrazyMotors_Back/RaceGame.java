@@ -34,7 +34,7 @@ public class RaceGame {
     //1280, 720
     public final static float[] DIMENSIONS = new float[]{1800.0f, 1080.0f};
     public final static float[] LINE_HEIGHTS = new float[]{950.0f, 370.0f};
-    private final static long TIME_BETWEEN = 10;
+    private final static long TIME_BETWEEN = 5;
     private final static long TIME_FINAL = 120;
     private float frame;
     
@@ -61,7 +61,7 @@ public class RaceGame {
     
     public RaceGame(int i, float dif){
         
-        scheduler = Executors.newScheduledThreadPool(4);
+        scheduler = Executors.newScheduledThreadPool(6);
         
         finalJuego.lock();
         try {
@@ -83,7 +83,7 @@ public class RaceGame {
         
         noiseValues = new float[]{50.0f, 50.0f};
         
-        velGame = -4.0f * dif;
+        velGame = -2.5f * dif;
         frame = 0.0f;
         
         finish = null;
@@ -122,8 +122,8 @@ public class RaceGame {
 
         int numberPlayers = numRacers.incrementAndGet();
         
-        if (numberPlayers == 2){
-            for (int i = 1; i < 4; i++){
+        if (numberPlayers == 2 && !scheduler.isShutdown()){
+            for (int i = 0; i < 3; i++){
                 int toNumber = 4-i;
                 scheduler.schedule(() -> countdown(toNumber), i, TimeUnit.SECONDS);
             }
@@ -144,7 +144,7 @@ public class RaceGame {
 
     }
     
-    public void countdown(int i){
+    private void countdown(int i){
         try {
             String msg = "{ \"function\": \"countdown\", \"params\": { \"count\": " + i + "} }";
             this.broadcast(msg);
@@ -185,7 +185,7 @@ public class RaceGame {
                 rac.sendMessage(message);
 
             } catch (Throwable ex) {
-                System.err.println("Execption sending message to snake " + rac.getId());
+                System.err.println("Execption sending message to racer " + rac.getId());
                 ex.printStackTrace(System.err);
                 removePlayer(rac);
             }
@@ -417,7 +417,6 @@ public class RaceGame {
         
         RaceGame that = this;
         
-        scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> step(), TIME_BETWEEN, TIME_BETWEEN, TimeUnit.MILLISECONDS);
         scheduler.schedule(new Runnable() {
             @Override

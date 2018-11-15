@@ -113,13 +113,13 @@ public class Racer {
                         
                         //COMPROBAR SI NITRO
                         if(this.isNitroPressed && this.nitroLvl > 0){
-                            this.vel[0] = 4.0f;
-                            this.nitroLvl -= 0.2f;
+                            this.vel[0] = 3.0f;
+                            this.nitroLvl -= 0.1f;
                         }
                         
                         //COMPROBAR SI SALTA
                         if(this.isJumpPressed){
-                            this.vel[1] = -8.0f;
+                            this.vel[1] = -9.0f;
                             this.stateAct = states.get(2);
                         }
                     }
