@@ -66,14 +66,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-                        <plugin>
-                            <groupId>com.google.appengine</groupId>
-                            <artifactId>appengine-maven-plugin</artifactId>
-                            <version>1.9.68</version>
-                            <configuration>
-                                <project>crazy-motors-back-v2</project>
-                            </configuration>
-                         </plugin>
 		</plugins>
 	</build>
 
