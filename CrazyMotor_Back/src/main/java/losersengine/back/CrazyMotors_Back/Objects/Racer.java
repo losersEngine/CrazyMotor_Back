@@ -119,7 +119,7 @@ public class Racer {
                         
                         //COMPROBAR SI SALTA
                         if(this.isJumpPressed){
-                            this.vel[1] = -9.0f;
+                            this.vel[1] = -9.3f;
                             this.stateAct = states.get(2);
                         }
                     }

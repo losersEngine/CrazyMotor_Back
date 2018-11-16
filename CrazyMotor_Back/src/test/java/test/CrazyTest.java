@@ -17,7 +17,7 @@ public class CrazyTest {
         }
 		
         /////////////////////////////////////////////////////////////////////////////////
-        @Test
+        //@Test
         public void testInicioAutom() throws DeploymentException, IOException, URISyntaxException, InterruptedException {
             
             AtomicReference<String> firstMsg = new AtomicReference<>();
@@ -36,7 +36,7 @@ public class CrazyTest {
             String nmsg = "{\"funcion\": \"unirSala\", \"params\": [\"1\"]}";
             //Conectar 2 jugadores
             for(int i = 0; i < 2; i++){
-                wsc[i].connect("ws://127.0.0.1:7070/race");
+                wsc[i].connect("wss://127.0.0.1:7070/race");
                 wsc[i].sendMessage(nmsg);
             }
 
@@ -59,7 +59,7 @@ public class CrazyTest {
             
         }
         
-        @Test
+        //@Test
         public void testCarga() throws DeploymentException, IOException, URISyntaxException, InterruptedException {
             
             Thread.sleep(9000);
@@ -84,7 +84,7 @@ public class CrazyTest {
             String nmsg = "{\"funcion\": \"unirSala\", \"params\": [\"1\"]}";
             //Conectar 2 jugadores
             for(int i = 0; i < wsc.length; i++){
-                wsc[i].connect("ws://127.0.0.1:7070/race");
+                wsc[i].connect("wss://127.0.0.1:7070/race");
                 wsc[i].sendMessage(nmsg);
             }
 

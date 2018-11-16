@@ -1,5 +1,6 @@
 package losersengine.back.CrazyMotors_Back.Objects;
 
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -15,13 +16,16 @@ public class Laser extends Prop{
     //Cuando aparece se les da un 5% de nitro a todos los jugadores
     
     private ScheduledExecutorService scheduler;
+    private Random rnd;
     
     public Laser(float[] pos) {
         super(pos, new int[]{45, -1300});
         
+        rnd = new Random(System.currentTimeMillis());
         scheduler = Executors.newScheduledThreadPool(1);
         
         this.type = "laser";
+        this.state = rnd.nextInt(3);
         
         scheduler.scheduleAtFixedRate(new Runnable() {
             @Override

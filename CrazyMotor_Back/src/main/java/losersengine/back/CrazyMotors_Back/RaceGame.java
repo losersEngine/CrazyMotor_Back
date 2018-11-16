@@ -124,7 +124,7 @@ public class RaceGame {
         
         if (numberPlayers == 2 && !scheduler.isShutdown()){
             for (int i = 0; i < 3; i++){
-                int toNumber = 4-i;
+                int toNumber = 3-i;
                 scheduler.schedule(() -> countdown(toNumber), i, TimeUnit.SECONDS);
             }
             
@@ -163,12 +163,11 @@ public class RaceGame {
             racers.remove(racer.getId());
         }
 
-        int count = numRacers.get();
+        int count = numRacers.decrementAndGet();
 
-        if (count == 2) {
+        if (count == 1) {
             Collection<Racer> players = this.getRacers();
             this.stopTimer((Racer)players.toArray()[0]);
-            numRacers.decrementAndGet();
         }
         
     }
@@ -178,7 +177,7 @@ public class RaceGame {
         for (Racer rac : getRacers()) {
             try {
 
-                System.out.println("Sending message " + message + " to " + rac.getId());
+                //System.out.println("Sending message " + message + " to " + rac.getId());
                 rac.sendMessage(message);
 
             } catch (Throwable ex) {
@@ -279,8 +278,8 @@ public class RaceGame {
         try {
             this.broadcast(msg.toString());
             //////////////////////////////////////////////////////////////////////////
-            if(frame%100 == 0){
-                float percentaje = frame / TIME_FINAL;
+            if(frame%200 == 0){
+                float percentaje = frame / (TIME_FINAL*2);
                 
                 if(percentaje > 100.0f)
                     percentaje = 100.0f;
@@ -322,7 +321,7 @@ public class RaceGame {
                 pToAddAbajo = new Trampoline(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0] + 5});
             } else if (cambioAbajo >= 40 && cambioAbajo < 80){ //Caja simple o doble
                 
-                System.out.println("Caja Abajo");
+                //////
                 
                 aux = new Box(new float[]{DIMENSIONS[0] + varianza,LINE_HEIGHTS[0]});
                 index = propsAbajo.size() - 1;
@@ -477,19 +476,6 @@ public class RaceGame {
 
     public int getId() {
         return id;
-    }
-
-    public boolean isEndGame() {
-        boolean game;
-        
-        finalJuego.lock();
-        try {
-            game = endGame;
-        } finally {
-            finalJuego.unlock();
-        }
-        
-        return game;
     }
     
 }

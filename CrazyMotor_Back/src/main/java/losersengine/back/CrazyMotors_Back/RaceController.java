@@ -117,7 +117,7 @@ public class RaceController extends TextWebSocketHandler {
 
             String msg = message.getPayload();
             
-            System.out.println(msg);
+            //System.out.println(msg);
 
             if (!msg.equals("undefined")){
                 Instruccion i = gson.fromJson(msg, Instruccion.class);
@@ -191,17 +191,21 @@ public class RaceController extends TextWebSocketHandler {
             RaceGame sg;
 
             sg = salas.get(s);
+            
+            synchronized(sg){
 
-            if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif && !sg.isEndGame()){
+                if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif){
 
-                Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[1]}, session);
-                session.getAttributes().put(RACER_ATT, raz.getId());
-                sessions.put(raz.getId(), raz);
+                    Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[1]}, session);
+                    session.getAttributes().put(RACER_ATT, raz.getId());
+                    sessions.put(raz.getId(), raz);
 
-                sg.addRacer(raz);
-                session.getAttributes().put(SALA_ATT, sg.getId());
+                    sg.addRacer(raz);
+                    session.getAttributes().put(SALA_ATT, sg.getId());
 
-                return;
+                    return;
+                }
+                
             }
 
         }

@@ -16,7 +16,7 @@ public class Box extends Prop{
     private ScheduledExecutorService scheduler;
     
     public Box(float[] pos) {
-        super(pos, new int[]{50,-100});
+        super(pos, new int[]{40,-80});
         
         scheduler = Executors.newScheduledThreadPool(1);
         
