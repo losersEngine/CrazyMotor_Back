@@ -163,15 +163,12 @@ public class RaceGame {
             racers.remove(racer.getId());
         }
 
-        int count = numRacers.decrementAndGet();
+        int count = numRacers.get();
 
-        if (count == 1) {
-            /*if (scheduler != null) {
-                scheduler.shutdown();
-            }*/
-            
+        if (count == 2) {
             Collection<Racer> players = this.getRacers();
             this.stopTimer((Racer)players.toArray()[0]);
+            numRacers.decrementAndGet();
         }
         
     }
@@ -480,6 +477,19 @@ public class RaceGame {
 
     public int getId() {
         return id;
+    }
+
+    public boolean isEndGame() {
+        boolean game;
+        
+        finalJuego.lock();
+        try {
+            game = endGame;
+        } finally {
+            finalJuego.unlock();
+        }
+        
+        return game;
     }
     
 }

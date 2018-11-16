@@ -99,9 +99,9 @@ public class CrazyTest {
                 wsc[i].disconnect();
             }
 
-            Thread.sleep(5000);
+            Thread.sleep(4000);
             wsc[9].disconnect();
-            Thread.sleep(500);
+            Thread.sleep(2000);
             
             msg = firstMsg.get();
             assertTrue("The message should contain 'finPartida', but it is "+msg, msg.contains("finPartida"));

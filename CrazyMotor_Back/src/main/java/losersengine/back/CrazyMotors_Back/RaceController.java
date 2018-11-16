@@ -192,7 +192,7 @@ public class RaceController extends TextWebSocketHandler {
 
             sg = salas.get(s);
 
-            if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif){
+            if(sg != null && sg.getNum() == 1 && sg.getDifficulty() == dif && !sg.isEndGame()){
 
                 Racer raz = new Racer(racerIds.getAndIncrement(), new float[]{80.0f, RaceGame.LINE_HEIGHTS[1]}, session);
                 session.getAttributes().put(RACER_ATT, raz.getId());
