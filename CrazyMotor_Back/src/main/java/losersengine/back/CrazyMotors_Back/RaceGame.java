@@ -216,10 +216,14 @@ public class RaceGame {
                     allProp.add(p);
                 }
             }
-        
-            for(Racer r : this.getRacers()){
-                r.update(allProp);
-            }
+            
+            int orderCollision = rnd.nextInt(2);
+            Collection<Racer> players = this.getRacers();
+            
+            Racer toUpdate = (Racer)players.toArray()[orderCollision];
+            toUpdate.update(allProp);
+            toUpdate = (Racer)players.toArray()[(orderCollision+1) % 2];
+            toUpdate.update(allProp);
         
             for(Prop d : toDestroyAbajo){
                 propsAbajo.remove(d);
