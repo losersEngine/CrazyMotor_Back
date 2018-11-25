@@ -139,7 +139,7 @@ public class RaceGame {
                         Logger.getLogger(RaceGame.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-            }, 4, TimeUnit.SECONDS);
+            }, 3, TimeUnit.SECONDS);
         }
 
     }

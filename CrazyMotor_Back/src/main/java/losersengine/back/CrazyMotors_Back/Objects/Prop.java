@@ -52,7 +52,7 @@ public abstract class Prop {
         boolean xCol = false;
         boolean yCol = false;
         
-        if(dis < 100 && coll){
+        if(dis < 200 && coll){
             
             yCol = (posRaz[1] > (this.position[1] + this.collider[1])) && ((posRaz[1] + colRaz[1]) < this.position[1]);
         
