@@ -25,10 +25,12 @@ public class Fall extends Prop{
 
     @Override
     public void onCollision(Racer raz) {
-        this.state = 1;
-        scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);
-        
-        raz.cambioLinea(10.0f, 0);
+        if (raz.getLineaActual() == 1){
+            this.state = 1;
+            scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);
+
+            raz.cambioLinea(10.0f, 0);
+        }
     }
     
 }

@@ -25,10 +25,12 @@ public class Trampoline extends Prop{
 
     @Override
     public void onCollision(Racer raz) {
-        this.state = 1;
-        scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);
-        
-        raz.cambioLinea(-10.0f, 1); //1
+        if (raz.getLineaActual() == 0){
+            this.state = 1;
+            scheduler.schedule(() -> {this.toBreak = true;}, 1, TimeUnit.SECONDS);
+
+            raz.cambioLinea(-10.0f, 1); //1
+        }
     }
     
 }
